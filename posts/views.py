@@ -95,6 +95,7 @@ class PostsView(APIView):
                  } for row in data
                 ]
 
+
                 result = {
                     'current_page': data_page.number,
                     'data': formatted_data,
