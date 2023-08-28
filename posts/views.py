@@ -57,6 +57,8 @@ class PostsView(APIView):
         filterDateTo = request.data.get('date_to')
         text = request.data.get('text', None)
         businessId = request.data.get('businessId', None)
+        clientId = request.data.get('clientId', None)
+        userId = request.data.get('userId', None)
 
         params = [
             
@@ -67,12 +69,12 @@ class PostsView(APIView):
             page,
             sortby,
             sortOrder,
-            businessId
-            
+            businessId,
+            clientId,
+            userId
         ]
       
         try:
-            pass
             with connection.cursor() as cursor:
                 cursor.callproc('sp_get_posts', params)
                 data = cursor.fetchall()
@@ -81,6 +83,8 @@ class PostsView(APIView):
             if data:
                 paginator = Paginator(data, perpage)
                 data_page = paginator.get_page(page)
+                print('paginator', paginator)
+                print('data_page', data_page)
 
 
                 formatted_data = [
@@ -92,7 +96,7 @@ class PostsView(APIView):
                     'image_url': row[4],
                     'status': row[5],
                     'cc': row[6]
-                 } for row in data
+                 } for row in data_page
                 ]
 
 
@@ -113,7 +117,21 @@ class PostsView(APIView):
 
                 return Response(result, status=status.HTTP_200_OK)
 
-            return Response({'message': 'No data found.'}, status=status.HTTP_404_NOT_FOUND)
+            result = {
+                    'current_page': page,
+                    'data': [],
+                    'first_page_url': '',
+                    'from': 0,
+                    'last_page': 0,
+                    'last_page_url': '',
+                    'next_page_url': '',
+                    'path': '',
+                    'per_page': perpage,
+                    'prev_page_url': '',
+                    'to': 0,
+                    'total': 0  # as the total count is the last element of each row
+                }
+            return Response(result, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
