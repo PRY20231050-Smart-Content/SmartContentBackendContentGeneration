@@ -59,6 +59,7 @@ class PostsView(APIView):
         businessId = request.data.get('businessId', None)
         clientId = request.data.get('clientId', None)
         userId = request.data.get('userId', None)
+        statusId = request.data.get('statusId', None)
 
         params = [
             
@@ -71,7 +72,8 @@ class PostsView(APIView):
             sortOrder,
             businessId,
             clientId,
-            userId
+            userId,
+            statusId
         ]
       
         try:

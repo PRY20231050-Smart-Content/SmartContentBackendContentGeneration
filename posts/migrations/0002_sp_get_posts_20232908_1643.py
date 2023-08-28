@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
         migrations.RunSQL("""
             DROP PROCEDURE IF EXISTS sp_get_posts;
 
-            CREATE PROCEDURE `sp_get_posts`(IN _text VARCHAR(250), 
+            CREATE  PROCEDURE `sp_get_posts`(IN _text VARCHAR(250), 
 						IN date_from DATE,
                         IN date_to DATE,
                         IN perpage INT,
@@ -22,7 +22,8 @@ class Migration(migrations.Migration):
                         IN orden VARCHAR(4), 
                         IN _business_id INT,
                         IN _client_id INT,
-                        IN _user_id INT
+                        IN _user_id INT,
+                        IN _status VARCHAR(50)
                         )
             BEGIN
 
@@ -39,6 +40,7 @@ class Migration(migrations.Migration):
                 and if(_business_id is null, true, pp.business_id = _business_id)
                 and if(_client_id is null, true, b.client_id = _client_id)
                 and if(_user_id is null, true, c.user_id = _user_id)
+                and if(_status is null, true, pp.status like CONCAT('%',_status,'%'))
                 AND IF(date_from IS NULL OR date_to IS NULL, TRUE, 
                 (DATE(pp.created_at) >= date_from AND DATE(pp.created_at) <= date_to));
 
@@ -51,6 +53,7 @@ class Migration(migrations.Migration):
                 and if(_business_id is null, true, pp.business_id = _business_id)
                 and if(_client_id is null, true, b.client_id = _client_id)
                 and if(_user_id is null, true, c.user_id = _user_id)
+                and if(_status is null, true, pp.status like CONCAT('%',_status,'%'))
                 AND IF(date_from IS NULL OR date_to IS NULL, TRUE, (DATE(pp.created_at) >= date_from 
                 AND DATE(pp.created_at) <= date_to))
                 ORDER BY pp.created_at desc;
