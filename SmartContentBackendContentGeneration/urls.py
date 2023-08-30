@@ -20,4 +20,5 @@ from posts import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('posts/', views.PostsView.as_view(), name='posts_get'),
+    path('save-post/', views.SavePostView.as_view(), name='save_post'),
 ]

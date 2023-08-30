@@ -6,7 +6,7 @@ class Posts(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     published_at = models.DateTimeField(null=True, blank=True)
-    image_url = models.CharField(max_length=255)
+    image_url = models.CharField(max_length=255, null=True, blank=True)  # Allow null and blank values
     STATUS_CHOICES = [
         ('draft', 'Draft'),
         ('published', 'Published'),

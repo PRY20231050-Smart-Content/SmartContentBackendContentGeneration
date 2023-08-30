@@ -5,56 +5,41 @@ from rest_framework import status
 from django.db import connection
 from django.core.paginator import Paginator, Page
 from rest_framework.decorators import api_view
+from datetime import datetime
+from posts.models import Posts
 
 
 class PostsView(APIView):
-    # def post(self, request):
-    #     try:
-    #         first_name = request.data.get('first_name')
-    #         last_name = request.data.get('last_name')
-    #         address_id = request.data.get('address_id')
-    #         email = request.data.get('email')
-    #         phone = request.data.get('phone')
-    #         profile_picture = request.data.get('profile_picture')
-    #         user_id = request.data.get('user_id')
 
-    #         with connection.cursor() as cursor:
-    #              cursor.execute("CALL insert_client(%s, %s, %s, %s, %s, %s, %s)", [first_name, last_name, address_id, email, phone, profile_picture, user_id])
-
-    #         return Response({'message': 'Client created.'}, status=status.HTTP_201_CREATED)
-
-    #     except Exception as e:
-    #         # Puedes registrar la excepción aquí para depurarla posteriormente
-    #         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-    # def put(self, request):
-    #     try:
-    #         client_id = request.data.get('client_id')
-    #         first_name = request.data.get('first_name')
-    #         last_name = request.data.get('last_name')
-    #         address_id = request.data.get('address_id')
-    #         email = request.data.get('email')
-    #         phone = request.data.get('phone')
-    #         profile_picture = request.data.get('profile_picture')
-    #         user_id = request.data.get('user_id')
-
-    #         with connection.cursor() as cursor:
-    #              cursor.execute("CALL update_client(%s, %s, %s, %s, %s, %s, %s, %s)", [client_id, first_name, last_name, address_id, email, phone, profile_picture, user_id])
-            
-    #         return Response({'message': 'Client updated.'}, status=status.HTTP_200_OK)
-
-    #     except Exception as e:
-    #         # Puedes registrar la excepción aquí para depurarla posteriormente
-    #         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-    def post(self, request):
+     def post(self, request):
         page = request.data.get('npage', 1)
         perpage = request.data.get('perPage', 10)
         sortby = request.data.get('sortBy', 'created_at')
         sortOrder = request.data.get('sortOrder', 'ASC')
-        filterDateFrom = request.data.get('date_from')
-        filterDateTo = request.data.get('date_to')
+        filterDateFrom = request.data.get('dateFrom')
+        if filterDateFrom:
+            # Parse the date string to a datetime object
+            filterDateFrom = datetime.strptime(filterDateFrom, '%m/%d/%Y')
+
+            # Format the datetime object to a different format
+            filterDateFrom = filterDateFrom.strftime('%Y-%m-%d')  # Format as 'day-month-year'
+
+            # Now 'formatted_date' contains the date in the desired format
+        else:
+            filterDateFrom = None  # If 'filterDateFrom' is not provided
+
+        filterDateTo = request.data.get('dateTo')
+        if filterDateTo:
+            # Parse the date string to a datetime object
+            filterDateTo = datetime.strptime(filterDateTo, '%m/%d/%Y')
+
+            # Format the datetime object to a different format
+            filterDateTo = filterDateTo.strftime('%Y-%m-%d')   # Format as 'day-month-year'
+
+            # Now 'formatted_date' contains the date in the desired format
+        else:
+            filterDateTo = None  # If 'filterDateTo' is not provided
+
         text = request.data.get('text', None)
         businessId = request.data.get('businessId', None)
         clientId = request.data.get('clientId', None)
@@ -75,6 +60,7 @@ class PostsView(APIView):
             userId,
             statusId
         ]
+        print('params', params)
       
         try:
             with connection.cursor() as cursor:
@@ -138,28 +124,31 @@ class PostsView(APIView):
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    # def getClientById(self, request, client_id):
-    #     try:
-    #         with connection.cursor() as cursor:
-    #             cursor.execute("SELECT * FROM clients WHERE id = %s", [client_id])
-    #             data = cursor.fetchone()
 
-    #         if data:
-    #             client_details = {
-    #                 'id': data[0],
-    #                 'first_name': data[1],
-    #                 'last_name': data[2],
-    #                 'address_id': data[3],
-    #                 'email': data[4],
-    #                 'phone': data[5],
-    #                 'profile_picture': data[6],
-    #                 'user_id': data[7],
-    #                 # Include other fields as needed
-    #             }
 
-    #             return Response(client_details, status=status.HTTP_200_OK)
+class SavePostView(APIView):
+    def post(self, request):
+        try:
+            content = request.data.get('content')
+            published_at = request.data.get('published_at')
+            image_url = request.data.get('image_url')
+            status_id = request.data.get('status')
+            business_id = 1
 
-    #         return Response({'message': 'Client not found.'}, status=status.HTTP_404_NOT_FOUND)
+            # Create a new Posts instance and set its attributes
+            new_post = Posts(
+                content=content,
+                published_at=published_at,
+                image_url=image_url,
+                status=status_id,
+                business_id=business_id
+            )
+            
+            # Save the new instance to the database
+            new_post.save()
 
-    #     except Exception as e:
-    #         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({'message': 'Post created.'}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # You can log the exception here for debugging purposes
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
