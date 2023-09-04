@@ -83,7 +83,8 @@ class PostsView(APIView):
                     'published_at': row[3],
                     'image_url': row[4],
                     'status': row[5],
-                    'cc': row[6]
+                    'business_name': row[6],
+                    'cc': row[7]
                  } for row in data_page
                 ]
 
@@ -146,6 +147,22 @@ class SavePostView(APIView):
             
             # Save the new instance to the database
             new_post.save()
+
+            return Response({'message': 'Post created.'}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # You can log the exception here for debugging purposes
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class PostChatView(APIView):
+    def get(self, request):
+        try:
+            post_id = request.data.get('postId')
+
+            # Create a new Posts instance and set its attributes
+            with connection.cursor() as cursor:
+                cursor.execute("CALL get_post_chat(%s)", [post_id])
+                data = cursor.fetchall()
 
             return Response({'message': 'Post created.'}, status=status.HTTP_200_OK)
 
