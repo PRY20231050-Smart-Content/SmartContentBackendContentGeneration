@@ -6,7 +6,8 @@ from django.db import connection
 from django.core.paginator import Paginator, Page
 from rest_framework.decorators import api_view
 from datetime import datetime
-from posts.models import Posts
+from posts.models import Posts, PostDetail
+from posts.helpers.create_post_fn import create_post
 
 
 class PostsView(APIView):
@@ -148,24 +149,73 @@ class SavePostView(APIView):
             # Save the new instance to the database
             new_post.save()
 
-            return Response({'message': 'Post created.'}, status=status.HTTP_200_OK)
+            return Response(new_post, status=status.HTTP_200_OK)
 
         except Exception as e:
             # You can log the exception here for debugging purposes
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class PostChatView(APIView):
-    def get(self, request):
+    def get(self, request, post_id):
         try:
-            post_id = request.data.get('postId')
+            post_id = post_id
 
             # Create a new Posts instance and set its attributes
             with connection.cursor() as cursor:
                 cursor.execute("CALL get_post_chat(%s)", [post_id])
                 data = cursor.fetchall()
 
-            return Response({'message': 'Post created.'}, status=status.HTTP_200_OK)
+            return Response(data, status=status.HTTP_200_OK)
 
         except Exception as e:
             # You can log the exception here for debugging purposes
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class PostTemplateView(APIView):
+    def post(self, request):
+        try:
+            # POST
+            status_id = 'draft' # default when creating a post
+            business_id = request.data.get('businessId')            
+            post_data = {
+                'content': '',
+                'published_at': None,
+                'image_url': None,
+                'status': status_id,
+                'business_id': business_id
+            }
+            
+            post_object, post_data, error = create_post(post_data)
+
+            # POST DETAIL
+            
+            post_ocassion = request.data.get('ocassion')
+            post_promo = request.data.get('promo')
+            post_objective = request.data.get('objective')
+            post_language = request.data.get('language')
+            post_use_emojis = request.data.get('useEmojisAnswer')
+            post_keywords = request.data.get('keywords')
+            post_creativity = request.data.get('creativityLevel')
+            post_copy_size = request.data.get('copySize')
+            post_include_business_info = request.data.get('includeBusinessInfo')
+            
+            post_detail = PostDetail(
+                post=post_object,  # Asocia esta instancia de PostDetail con el post que creaste en el paso 1
+                post_ocassion= post_ocassion,
+                post_promo=post_promo,
+                post_objective=post_objective,
+                post_language=post_language,  # Ejemplo de elección de idioma
+                post_copy_size=post_copy_size,  # Ejemplo de tamaño de copia
+                post_use_emojis=post_use_emojis,  # Ejemplo de elección de emojis
+                post_creativity=post_creativity,  # Ejemplo de creatividad
+                post_keywords=post_keywords,  # Ejemplo de palabras clave como una lista JSON
+                post_include_business_info=post_include_business_info,  # Ejemplo de inclusión de información de negocios
+            )
+            post_detail.save()  # Guarda el detalle del post en la base de datos
+
+            return Response({'message': 'Post created.', 'post': post_data}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # Puedes registrar la excepción aquí para depurarla posteriormente
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
