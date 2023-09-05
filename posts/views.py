@@ -219,3 +219,36 @@ class PostTemplateView(APIView):
         except Exception as e:
             # Puedes registrar la excepción aquí para depurarla posteriormente
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+class PostDetailView(APIView):
+    def get(self, request, post_id):
+        try:
+            post_id = post_id
+
+            with connection.cursor() as cursor:
+                cursor.execute("CALL get_post_detail(%s)", [post_id])
+                data = cursor.fetchall()
+                print('post detail', data)
+                print('post detail', data[0][0])
+
+                post_data = {
+                    'ocassion': data[0][0],
+                    'promo': data[0][1],
+                    'objective': data[0][2],
+                    'language': data[0][3],
+                    'useEmojisAnswer': data[0][4],
+                    'creativityLevel': data[0][5],
+                    'keywords': data[0][6],
+                    'productsToInclude': data[0][7],
+                    'includeBusinessInfo': data[0][8],
+                    'copySize': data[0][9],
+                    'businessId': data[0][10],
+                    'clientId': data[0][11],
+                    'postStatus': data[0][12],
+                }
+
+            return Response(post_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # You can log the exception here for debugging purposes
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
