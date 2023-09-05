@@ -131,25 +131,28 @@ class PostsView(APIView):
 class SavePostView(APIView):
     def post(self, request):
         try:
+            post_id = request.data.get('postId')
             content = request.data.get('content')
             published_at = request.data.get('published_at')
             image_url = request.data.get('image_url')
             status_id = request.data.get('status')
-            business_id = 1
 
-            # Create a new Posts instance and set its attributes
-            new_post = Posts(
-                content=content,
-                published_at=published_at,
-                image_url=image_url,
-                status=status_id,
-                business_id=business_id
-            )
-            
-            # Save the new instance to the database
-            new_post.save()
+            # Busca el post existente en la base de datos por su ID
+            try:
+                existing_post = Posts.objects.get(id=post_id)
+            except Posts.DoesNotExist:
+                return Response({'error': 'El post que intentas actualizar no existe.'}, status=status.HTTP_404_NOT_FOUND)
 
-            return Response(new_post, status=status.HTTP_200_OK)
+            # Actualiza los campos del post existente
+            existing_post.content = content
+            existing_post.published_at = published_at
+            existing_post.image_url = image_url
+            existing_post.status = status_id
+
+            # Guarda los cambios en el post existente
+            existing_post.save()
+
+            return Response({'message': 'Post actualizado.'}, status=status.HTTP_200_OK)
 
         except Exception as e:
             # You can log the exception here for debugging purposes
@@ -164,6 +167,23 @@ class PostChatView(APIView):
             with connection.cursor() as cursor:
                 cursor.execute("CALL get_post_chat(%s)", [post_id])
                 data = cursor.fetchall()
+                
+                if data:
+                    formatted_data = [
+                        {
+                            'message': row[0],
+                            'chosen': row[1],
+                            'senderId': row[2],
+                            'time': row[3],
+                        } for row in data
+                    ]
+                    
+                    post_history_chat = {
+                        "id": 'user',
+                        "userId": 'user',
+                        "chat": formatted_data
+                    }
+
 
             return Response(data, status=status.HTTP_200_OK)
 
