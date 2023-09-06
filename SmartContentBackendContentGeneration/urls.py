@@ -24,5 +24,6 @@ urlpatterns = [
     path('get-post-chat/<int:post_id>/', views.PostChatView.as_view(), name='get'),
     path('generate-post/', views.PostTemplateView.as_view(), name='get'),
     path('get-post-detail/<int:post_id>/', views.PostDetailView.as_view(), name='get'),
+    path('send-message/', views.MessageTemplateView.as_view(), name='post'),
 
 ]

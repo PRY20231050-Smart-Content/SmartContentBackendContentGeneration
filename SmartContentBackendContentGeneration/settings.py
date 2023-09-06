@@ -80,7 +80,7 @@ WSGI_APPLICATION = 'SmartContentBackendContentGeneration.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'djangodatabase',
+        'NAME': 'tesis',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': 'localhost',

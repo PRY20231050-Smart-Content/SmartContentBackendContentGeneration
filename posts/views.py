@@ -6,7 +6,7 @@ from django.db import connection
 from django.core.paginator import Paginator, Page
 from rest_framework.decorators import api_view
 from datetime import datetime
-from posts.models import Posts, PostDetail
+from posts.models import Posts, PostDetail, Messages
 from posts.helpers.create_post_fn import create_post
 
 
@@ -271,4 +271,26 @@ class PostDetailView(APIView):
 
         except Exception as e:
             # You can log the exception here for debugging purposes
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class MessageTemplateView(APIView):
+    def post(self, request):
+        try:
+            # POST
+            post_id = request.data.get('postId')
+            message_content = request.data.get('messageContent')
+            role_name = request.data.get('roleName')
+                        
+            new_message = Messages(
+                content=message_content,  
+                post= post_id,
+                role=role_name,
+            )
+            new_message.save()  # Guarda el detalle del post en la base de datos
+
+            return Response({'message': 'Message created.'}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # Puedes registrar la excepción aquí para depurarla posteriormente
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
