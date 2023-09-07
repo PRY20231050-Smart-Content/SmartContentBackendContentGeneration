@@ -1,4 +1,8 @@
 from posts.models import Posts
+import nltk
+from nltk.corpus import wordnet
+from nltk.tokenize import word_tokenize
+import pandas as pd
 
 def create_post(post_data):
     print('create post')
@@ -35,3 +39,63 @@ def create_post(post_data):
         print('Exception ', str(e))
         # Puedes registrar la excepción aquí para depurarla posteriormente
         return None, None, str(e)  # Retorna None como datos del post y el error como cadena
+    
+    
+
+
+# Descargar datos de nltk (si no se han descargado previamente)
+
+
+# Función para obtener sinónimos de una palabra
+def obtener_sinonimos(palabra):
+    sinonimos = []
+    for syn in wordnet.synsets(palabra):
+        for lemma in syn.lemmas():
+            sinonimos.append(lemma.name())
+    return sinonimos
+
+# Definición de la función encontrar_coincidencias_con_sinonimos
+def encontrar_coincidencias_con_sinonimos(textos, palabras_clave):
+    textos_con_coincidencias = []  # Usamos una lista para almacenar los textos con coincidencias
+    ids_agregados = set()  # Usamos un conjunto para mantener un registro de los IDs agregados
+    for texto in textos:
+        palabras_texto = word_tokenize(texto['copy'].lower())  # Accedemos al texto con 'copy'
+        for palabra_clave in palabras_clave:
+            if palabra_clave.lower() in palabras_texto:
+                if texto['id'] not in ids_agregados:
+                    textos_con_coincidencias.append(texto)  # Agregamos el diccionario completo
+                    ids_agregados.add(texto['id'])  # Agregamos el ID al conjunto
+            else:
+                sinonimos = obtener_sinonimos(palabra_clave)  # Obtener sinonimos
+                for sinonimo in sinonimos:
+                    if sinonimo.lower() in palabras_texto:
+                        if texto['id'] not in ids_agregados:
+                            textos_con_coincidencias.append(texto)  # Agregamos el diccionario completo
+                            ids_agregados.add(texto['id'])  # Agregamos el ID al conjunto
+                            break  # Rompe el bucle si encuentra una coincidencia
+    return textos_con_coincidencias  # Devolvemos la lista de diccionarios completos sin IDs repetidos
+
+
+
+
+
+def devuelve_las_mejores_coincidencias(textos,palabras_clave,size):
+    
+       
+    textos_coincidentes = encontrar_coincidencias_con_sinonimos(textos, palabras_clave)
+    
+   
+    
+    # Ordenar la lista de textos por puntaje en orden descendente
+    textos_coincidentes.sort(key=lambda x: (0.4 * int(x['likes']) + 0.6 * int(x['shared'])), reverse=True)
+    
+    # Seleccionar los tres mejores textos
+    mejores_textos = textos_coincidentes[:size]
+    
+    return mejores_textos
+
+
+
+
+
+    

@@ -8,6 +8,7 @@ from rest_framework.decorators import api_view
 from datetime import datetime
 from posts.models import Posts, PostDetail, Messages
 from posts.helpers.create_post_fn import create_post
+from posts.helpers.create_post_fn import devuelve_las_mejores_coincidencias
 
 
 class PostsView(APIView):
@@ -233,8 +234,18 @@ class PostTemplateView(APIView):
                 post_include_business_info=post_include_business_info,  # Ejemplo de inclusión de información de negocios
             )
             post_detail.save()  # Guarda el detalle del post en la base de datos
+            
+            ##traer todos los copies por negocio
+            with connection.cursor() as cursor:
+              cursor.execute(""" SELECT c.id,c.copy, c.likes, c.shared  FROM copies c WHERE c.business_id = %s  """, [business_id])
+              data = cursor.fetchall()
+              data_list = [{'id': row[0],'copy': row[1], 'likes': row[2], 'shared': row[3]} for row in data]
 
-            return Response({'message': 'Post created.', 'post': post_data}, status=status.HTTP_200_OK)
+                
+              mejores_textos=  devuelve_las_mejores_coincidencias(data_list,post_keywords, 3)
+            
+
+            return Response({'message': 'Post created.', 'post': post_data,'mejores_textos':mejores_textos}, status=status.HTTP_200_OK)
 
         except Exception as e:
             # Puedes registrar la excepción aquí para depurarla posteriormente
