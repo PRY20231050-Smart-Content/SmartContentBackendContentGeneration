@@ -219,7 +219,8 @@ class PostTemplateView(APIView):
             post_creativity = request.data.get('creativityLevel')
             post_copy_size = request.data.get('copySize')
             post_include_business_info = request.data.get('includeBusinessInfo')
-            
+            post_products_to_include = request.data.get('productsToInclude')
+
             post_detail = PostDetail(
                 post=post_object,  # Asocia esta instancia de PostDetail con el post que creaste en el paso 1
                 post_ocassion= post_ocassion,
@@ -231,6 +232,7 @@ class PostTemplateView(APIView):
                 post_creativity=post_creativity,  # Ejemplo de creatividad
                 post_keywords=post_keywords,  # Ejemplo de palabras clave como una lista JSON
                 post_include_business_info=post_include_business_info,  # Ejemplo de inclusión de información de negocios
+                products_to_include=post_products_to_include
             )
             post_detail.save()  # Guarda el detalle del post en la base de datos
 
@@ -265,6 +267,7 @@ class PostDetailView(APIView):
                     'businessId': data[0][10],
                     'clientId': data[0][11],
                     'postStatus': data[0][12],
+                    'productsToInclude': data[0][13],
                 }
 
             return Response(post_data, status=status.HTTP_200_OK)

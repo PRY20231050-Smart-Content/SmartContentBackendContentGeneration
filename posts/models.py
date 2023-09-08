@@ -15,6 +15,7 @@ class Posts(models.Model):
     business_id = models.IntegerField()
     deleted_at = models.DateTimeField(null=True, blank=True)
 
+
     def __str__(self):
         return f"{self.id} - {self.content}"
 
@@ -65,6 +66,7 @@ class PostDetail(models.Model):
         ('no', 'No'),
     ]
     post_include_business_info = models.CharField(max_length=3, choices=POST_INCLUDE_BUSINESS_INFO_CHOICES)
+    products_to_include = models.JSONField()
 
     def __str__(self):
         return f"Post Detail {self.id}"

@@ -13,17 +13,18 @@ class Migration(migrations.Migration):
         migrations.RunSQL("""
             DROP PROCEDURE IF EXISTS get_post_detail;
 
-            CREATE PROCEDURE get_post_detail(_post_id int)
+            CREATE PROCEDURE `get_post_detail`(_post_id int)
             begin
                 select pp.post_ocassion, pp.post_promo, pp.post_objective,
                 pp.post_language, pp.post_use_emojis, pp.post_creativity,
-                pp.post_keywords, '', pp.post_include_business_info, 
+                pp.post_keywords, '', pp.post_include_business_info,
                 pp.post_copy_size,
-                b.id business_id, c.id client_id, pp2.status post_status
-                from posts_postdetail pp 
-                join posts_posts pp2 on pp.post_id = pp2.id 
-                join businesses b on pp2.business_id = b.id 
-                join clients c on b.client_id = c.id 
+                b.id business_id, c.id client_id, pp2.status post_status,
+                pp.products_to_include
+                from posts_postdetail pp
+                join posts_posts pp2 on pp.post_id = pp2.id
+                join businesses b on pp2.business_id = b.id
+                join clients c on b.client_id = c.id
                 where pp.post_id = _post_id;
             END
         """)]
