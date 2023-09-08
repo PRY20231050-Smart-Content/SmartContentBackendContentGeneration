@@ -9,7 +9,7 @@ from datetime import datetime
 from posts.models import Posts, PostDetail, Messages
 from posts.helpers.create_post_fn import create_post
 from posts.helpers.create_post_fn import devuelve_las_mejores_coincidencias
-
+from django.utils import timezone
 
 class PostsView(APIView):
 
@@ -126,7 +126,24 @@ class PostsView(APIView):
 
         except Exception as e:
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+     def delete(self, request, post_id):
+        try:
+            # Busca el post existente en la base de datos por su ID
+            try:
+                existing_post = Posts.objects.get(id=post_id)
+            except Posts.DoesNotExist:
+                return Response({'error': 'El post que intentas actualizar no existe.'}, status=status.HTTP_404_NOT_FOUND)
 
+            # Actualiza los campos del post existente
+            existing_post.updated_at = timezone.now()
+            # Guarda los cambios en el post existente
+            existing_post.save()
+
+            return Response({'message': 'Post actualizado.'}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # You can log the exception here for debugging purposes
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 class SavePostView(APIView):
