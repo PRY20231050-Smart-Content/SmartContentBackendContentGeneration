@@ -195,15 +195,8 @@ class PostChatView(APIView):
                             'time': row[3],
                         } for row in data
                     ]
-                    
-                    post_history_chat = {
-                        "id": 'user',
-                        "userId": 'user',
-                        "chat": formatted_data
-                    }
 
-
-            return Response(data, status=status.HTTP_200_OK)
+            return Response(formatted_data, status=status.HTTP_200_OK)
 
         except Exception as e:
             # You can log the exception here for debugging purposes
@@ -312,11 +305,17 @@ class MessageTemplateView(APIView):
             post_id = request.data.get('postId')
             message_content = request.data.get('messageContent')
             role_name = request.data.get('roleName')
+            
+            try:
+                existing_post = Posts.objects.get(id=post_id)
+            except Posts.DoesNotExist:
+                return Response({'error': 'El post que intentas actualizar no existe.'}, status=status.HTTP_404_NOT_FOUND)
                         
             new_message = Messages(
                 content=message_content,  
-                post= post_id,
+                post= existing_post,
                 role=role_name,
+                created_at=timezone.now()
             )
             new_message.save()  # Guarda el detalle del post en la base de datos
 
