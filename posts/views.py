@@ -256,10 +256,10 @@ class PostTemplateView(APIView):
             with connection.cursor() as cursor:
               cursor.execute(""" SELECT c.id,c.copy, c.likes, c.shared  FROM copies c WHERE c.business_id = %s  """, [business_id])
               data = cursor.fetchall()
-              data_list = [{'id': row[0],'copy': row[1], 'likes': row[2], 'shared': row[3]} for row in data]
+              lista_de_copies = [{'id': row[0],'copy': row[1], 'likes': row[2], 'shared': row[3]} for row in data]
 
                 
-              mejores_textos=  devuelve_las_mejores_coincidencias(data_list,post_keywords, 3, 3)
+              mejores_textos=  devuelve_las_mejores_coincidencias(lista_de_copies,post_detail,post_data, 3, 3)
               
               #recorrer el tamaño de mejores textos
               #insertar en la tabla post_chat
@@ -267,7 +267,7 @@ class PostTemplateView(APIView):
               for i in range(len(mejores_textos)):
                 with connection.cursor() as cursor:
                     cursor.execute(""" insert into posts_messages (content,	created_at,	`role`,	chosen,	post_id) values (%s, %s, %s, %s, %s) """, 
-                    [ mejores_textos[0]['copy'],datetime.now(),'system', 0, post_object.id])
+                    [ mejores_textos[i]['copy'],datetime.now(),'system', 0, post_object.id])
             
             
               

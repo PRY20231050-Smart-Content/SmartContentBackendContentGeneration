@@ -100,8 +100,8 @@ def encontrar_coincidencias_con_sinonimos(textos, palabras_clave):
     return textos_con_coincidencias  # Devolvemos la lista de diccionarios completos sin IDs repetidos
 
 
-def devuelve_las_mejores_coincidencias(textos, palabras_clave, size,return_size):
-    textos_coincidentes = encontrar_coincidencias_con_sinonimos(textos, palabras_clave)
+def devuelve_las_mejores_coincidencias(textos, detalles_post, post,size,return_size):
+    textos_coincidentes = encontrar_coincidencias_con_sinonimos(textos, detalles_post.post_keywords)
 
     # Ordenar la lista de textos por puntaje en orden descendente
     textos_coincidentes.sort(
