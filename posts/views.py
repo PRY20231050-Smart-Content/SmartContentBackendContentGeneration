@@ -10,6 +10,8 @@ from posts.models import Posts, PostDetail, Messages
 from posts.helpers.create_post_fn import create_post
 from posts.helpers.create_post_fn import devuelve_las_mejores_coincidencias
 from django.utils import timezone
+from unidecode import unidecode
+import json
 
 class PostsView(APIView):
 
@@ -260,14 +262,25 @@ class PostTemplateView(APIView):
 
                 
               mejores_textos=  devuelve_las_mejores_coincidencias(lista_de_copies,post_detail,post_data, 3, 3)
-              
-              #recorrer el tamaño de mejores textos
-              #insertar en la tabla post_chat
-              
-              for i in range(len(mejores_textos)):
+
+            
+            
+            for choice in json.loads(mejores_textos):
+                print('choice', choice)
+                
+                content = choice['message']['content']
+                
+               
+                # print('content', message['role'])
+
+                # Realiza la inserción en la tabla posts_messages
                 with connection.cursor() as cursor:
-                    cursor.execute(""" insert into posts_messages (content,	created_at,	`role`,	chosen,	post_id) values (%s, %s, %s, %s, %s) """, 
-                    [ mejores_textos[i]['copy'],datetime.now(),'system', 0, post_object.id])
+                    cursor.execute(
+                        """INSERT INTO posts_messages (content, created_at, `role`, chosen, post_id)
+                        VALUES (%s, %s, %s, %s, %s)""",
+                        [json.dumps(content), datetime.now(), 'system', 0, post_object.id]
+                    )
+
             
             
               

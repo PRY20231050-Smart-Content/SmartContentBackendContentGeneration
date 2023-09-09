@@ -87,7 +87,8 @@ DATABASES = {
         'PORT': '3306',
     },
       'OPTIONS': {
-            'charset': 'utf8mb4',  # Usar utf8mb4 para admitir caracteres especiales como emojis.
+            'charset': 'utf8mb4',
+            'collation': 'utf8mb4_general_ci',
         },
 }
 

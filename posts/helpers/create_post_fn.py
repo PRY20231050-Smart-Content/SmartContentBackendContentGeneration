@@ -5,6 +5,7 @@ from nltk.tokenize import word_tokenize
 import pandas as pd
 import requests
 import json
+import openai
 
 
 def create_post(post_data):
@@ -111,36 +112,37 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post, post,size,return_s
     # Seleccionar los tres mejores textos
     mejores_textos = textos_coincidentes[:size]
     
-    # open_ia()
+    messages = [
+    {"role": "system", "content": "You are a social media marketer."},
+    {"role": "user", "content": "Create a compelling Facebook post for a floor cleaning service."},
+    {"role": "assistant", "content": "Tired of old floor stains ruining your business's appearance? Say goodbye to dirt, grime, and wax buildup with our professional floor cleaning services! ✨\n\nWe use advanced techniques and state-of-the-art equipment to deep clean and restore all types of flooring surfaces. Save time and energy – let us handle the scrubbing while you focus on what you do best! 💼\n\nContact us today for a free consultation:\n📲 Call (951) 403 4384, (909) 258 1797, or (909) 485 6647\n📩 Email: frankjaviord@gmail.com"},
+    {"role": "user", "content": "Create another Facebook post for floor cleaning."},
+    {"role": "assistant", "content": "Transform your business's appearance with our top-notch floor stripping and waxing services! 💫 Spotless Cleaning Services understands the importance of leaving a lasting impression on your clients. Whether it's an office, store, or business center, our highly skilled team ensures every inch shines brightly. Don't miss out on our exclusive promotion!\n\nContact us today for a free consultation:\n📲 Call (951) 403 4384, (909) 258 1797, or (909) 485 6647\n📩 Email: frankjaviord@gmail.com"},
+    {"role": "user", "content": "Create a Facebook post for construction debris removal."},
+    {"role": "assistant", "content": "Construction debris can pose risks to your site's safety and stability. From trip hazards to health concerns, it's crucial to handle it safely. That's where we come in!\n\nOur expert team ensures a spotless construction site, handling everything from debris removal to meticulous surface cleaning. Rest easy knowing your site is secure.\n\nContact us today for a free consultation:\n📲 Call (951) 403 4384, (909) 258 1797, or (909) 485 6647\n📩 Email: frankjaviord@gmail.com"}
+    ]
+    
+    respuesta_ia= open_ia(1,messages,3)
 
-    return mejores_textos
+    return respuesta_ia
 
 
-def open_ia(temperature, messages):
-    print("open ia")
-    # Define tu clave de API de OpenAI
-    OPENAI_API_KEY = "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"
+def open_ia(temperature, messages,tamano_respuesta):
+    
+#  URL de la API de OpenAI
+    openai.api_key = "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"
 
-    # URL de la API de OpenAI
-    url = "https://api.openai.com/v1/chat/completions"
+    completion = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=messages,n=tamano_respuesta,max_tokens=150,temperature=temperature)
+    
+    print(json.dumps(completion.choices))
 
-    # Datos de la solicitud en formato JSON
-    data = {
-        "model": "gpt-3.5-turbo",
-        "messages": messages,
-        "temperature": temperature,
-    }
+    for choice in completion.choices:
+        print(choice.message.content)
+        
+    return json.dumps(completion.choices)
+    
+    
 
-    # Encabezados de la solicitud
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {OPENAI_API_KEY}",
-    }
-
-    # Realizar la solicitud POST a la API de OpenAI
-    response = requests.post(url, data=json.dumps(data), headers=headers)
-
-    # Mostrar la respuesta
-    print(response.json())
-    return response.json()
- 
+    
