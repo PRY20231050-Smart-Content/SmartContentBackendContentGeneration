@@ -31,6 +31,7 @@ class Messages(models.Model):
         ('no', 'No'),
     ]
     chosen = models.CharField(max_length=3, choices=CHOICES)
+    selectable = models.CharField(max_length=3, choices=CHOICES)
 
     def __str__(self):
         return f"Message {self.id}"
