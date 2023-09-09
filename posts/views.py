@@ -88,7 +88,8 @@ class PostsView(APIView):
                     'image_url': row[4],
                     'status': row[5],
                     'business_name': row[6],
-                    'cc': row[7]
+                    'cc': row[7],
+                    'business_image': row[8],
                  } for row in data_page
                 ]
 
@@ -105,7 +106,7 @@ class PostsView(APIView):
                     'per_page': perpage,
                     'prev_page_url': request.build_absolute_uri(data_page.previous_page_number()) if data_page.has_previous() else None,
                     'to': data_page.end_index(),
-                    'total': data[0][-1]  # as the total count is the last element of each row
+                    'total': data[0][-2]  # as the total count is the last element of each row
                 }
 
                 return Response(result, status=status.HTTP_200_OK)
@@ -197,15 +198,8 @@ class PostChatView(APIView):
                             'time': row[3],
                         } for row in data
                     ]
-                    
-                    post_history_chat = {
-                        "id": 'user',
-                        "userId": 'user',
-                        "chat": formatted_data
-                    }
 
-
-            return Response(data, status=status.HTTP_200_OK)
+            return Response(formatted_data, status=status.HTTP_200_OK)
 
         except Exception as e:
             # You can log the exception here for debugging purposes
@@ -239,7 +233,8 @@ class PostTemplateView(APIView):
             post_creativity = request.data.get('creativityLevel')
             post_copy_size = request.data.get('copySize')
             post_include_business_info = request.data.get('includeBusinessInfo')
-            
+            post_products_to_include = request.data.get('productsToInclude')
+
             post_detail = PostDetail(
                 post=post_object,  # Asocia esta instancia de PostDetail con el post que creaste en el paso 1
                 post_ocassion= post_ocassion,
@@ -251,6 +246,7 @@ class PostTemplateView(APIView):
                 post_creativity=post_creativity,  # Ejemplo de creatividad
                 post_keywords=post_keywords,  # Ejemplo de palabras clave como una lista JSON
                 post_include_business_info=post_include_business_info,  # Ejemplo de inclusión de información de negocios
+                products_to_include=post_products_to_include
             )
             post_detail.save()  # Guarda el detalle del post en la base de datos
             
@@ -317,6 +313,7 @@ class PostDetailView(APIView):
                     'businessId': data[0][10],
                     'clientId': data[0][11],
                     'postStatus': data[0][12],
+                    'productsToInclude': data[0][13],
                 }
 
             return Response(post_data, status=status.HTTP_200_OK)
@@ -333,11 +330,17 @@ class MessageTemplateView(APIView):
             post_id = request.data.get('postId')
             message_content = request.data.get('messageContent')
             role_name = request.data.get('roleName')
+            
+            try:
+                existing_post = Posts.objects.get(id=post_id)
+            except Posts.DoesNotExist:
+                return Response({'error': 'El post que intentas actualizar no existe.'}, status=status.HTTP_404_NOT_FOUND)
                         
             new_message = Messages(
                 content=message_content,  
-                post= post_id,
+                post= existing_post,
                 role=role_name,
+                created_at=timezone.now()
             )
             new_message.save()  # Guarda el detalle del post en la base de datos
 

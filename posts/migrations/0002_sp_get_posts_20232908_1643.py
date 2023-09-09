@@ -13,19 +13,19 @@ class Migration(migrations.Migration):
         migrations.RunSQL("""
             DROP PROCEDURE IF EXISTS sp_get_posts;
 
-            CREATE  PROCEDURE `sp_get_posts`(IN _text VARCHAR(250), 
+CREATE PROCEDURE `sp_get_posts`(IN _text VARCHAR(250),
 						IN date_from DATE,
                         IN date_to DATE,
                         IN perpage INT,
                         IN npage INT,
                         IN order_by VARCHAR(255),
-                        IN orden VARCHAR(4), 
+                        IN orden VARCHAR(4),
                         IN _business_id INT,
                         IN _client_id INT,
                         IN _user_id INT,
                         IN _status VARCHAR(50)
                         )
-            BEGIN
+BEGIN
 
                 DECLARE cc INT;
 
@@ -33,29 +33,36 @@ class Migration(migrations.Migration):
 
                 select count(*) into cc
                 from posts_posts pp
-				left join businesses b on pp.business_id = b.id 
-				left join clients c on b.client_id = c.id 
+				left join businesses b on pp.business_id = b.id
+				left join clients c on b.client_id = c.id
 				left join users u on c.user_id = u.id
                 where pp.deleted_at is null
                 and if(_business_id is null, true, pp.business_id = _business_id)
                 and if(_client_id is null, true, b.client_id = _client_id)
                 and if(_user_id is null, true, c.user_id = _user_id)
                 and if(_status is null, true, pp.status like CONCAT('%',_status,'%'))
-                AND IF(date_from IS NULL OR date_to IS NULL, TRUE, 
-                (DATE(pp.created_at) >= date_from AND DATE(pp.created_at) <= date_to));
+                AND IF(date_from IS NULL, TRUE,
+                DATE(pp.created_at) >= date_from)
+                AND IF(date_to IS NULL, TRUE,
+                DATE(pp.created_at) <= date_to);
 
-                select pp.id, pp.content, pp.created_at, pp.published_at, pp.image_url, pp.status, cc
+                select pp.id, pp.content, pp.created_at,  pp.published_at, 
+                pp.image_url, pp.status, b.name business_name,
+                cc cc,
+                b.logo_carpet business_image
                 from posts_posts pp
-				left join businesses b on pp.business_id = b.id 
-				left join clients c on b.client_id = c.id 
+				left join businesses b on pp.business_id = b.id
+				left join clients c on b.client_id = c.id
 				left join users u on c.user_id = u.id
                 where pp.deleted_at is null
                 and if(_business_id is null, true, pp.business_id = _business_id)
                 and if(_client_id is null, true, b.client_id = _client_id)
                 and if(_user_id is null, true, c.user_id = _user_id)
                 and if(_status is null, true, pp.status like CONCAT('%',_status,'%'))
-                AND IF(date_from IS NULL OR date_to IS NULL, TRUE, (DATE(pp.created_at) >= date_from 
-                AND DATE(pp.created_at) <= date_to))
+                AND IF(date_from IS NULL, TRUE,
+                DATE(pp.created_at) >= date_from)
+                AND IF(date_to IS NULL, TRUE,
+                DATE(pp.created_at) <= date_to)
                 ORDER BY pp.created_at desc;
 
             END
