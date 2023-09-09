@@ -242,7 +242,18 @@ class PostTemplateView(APIView):
               data_list = [{'id': row[0],'copy': row[1], 'likes': row[2], 'shared': row[3]} for row in data]
 
                 
-              mejores_textos=  devuelve_las_mejores_coincidencias(data_list,post_keywords, 3)
+              mejores_textos=  devuelve_las_mejores_coincidencias(data_list,post_keywords, 3, 3)
+              
+              #recorrer el tamaño de mejores textos
+              #insertar en la tabla post_chat
+              
+              for i in range(len(mejores_textos)):
+                with connection.cursor() as cursor:
+                    cursor.execute(""" insert into posts_messages (content,	created_at,	`role`,	chosen,	post_id) values (%s, %s, %s, %s, %s) """, 
+                    [ mejores_textos[0]['copy'],datetime.now(),'system', 0, post_object.id])
+            
+            
+              
             
 
             return Response({'message': 'Post created.', 'post': post_data,'mejores_textos':mejores_textos}, status=status.HTTP_200_OK)
