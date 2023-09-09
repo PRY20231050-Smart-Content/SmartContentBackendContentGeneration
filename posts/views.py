@@ -186,6 +186,7 @@ class PostChatView(APIView):
             with connection.cursor() as cursor:
                 cursor.execute("CALL get_post_chat(%s)", [post_id])
                 data = cursor.fetchall()
+                formatted_data= []
                 
                 if data:
                     formatted_data = [
