@@ -261,7 +261,7 @@ class PostTemplateView(APIView):
 
             
             
-            for choice in json.loads(mejores_textos):
+            for choice in mejores_textos:
                 print('choice', choice)
                 
                 content = choice['message']['content']
@@ -276,6 +276,19 @@ class PostTemplateView(APIView):
                         VALUES (%s, %s, %s, %s, %s)""",
                         [json.dumps(content), datetime.now(), 'system', 0, post_object.id]
                     )
+                    
+                # Realiza la inserción en la tabla posts_messages
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """select content from posts_messages where post_id = %s  """, [post_object.id])
+                    data = cursor.fetchall()
+                    #convertir de json a diccionario
+                   # Extract the content from the fetched rows and load JSON
+                    json_data = [json.loads(row[0]) for row in data]
+
+                    print('data', json_data)
+                    
+                
 
             
             

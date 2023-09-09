@@ -141,7 +141,7 @@ def open_ia(temperature, messages,tamano_respuesta):
     for choice in completion.choices:
         print(choice.message.content)
         
-    return json.dumps(completion.choices)
+    return completion.choices
     
     
 
