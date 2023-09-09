@@ -100,8 +100,8 @@ def encontrar_coincidencias_con_sinonimos(textos, palabras_clave):
     return textos_con_coincidencias  # Devolvemos la lista de diccionarios completos sin IDs repetidos
 
 
-def devuelve_las_mejores_coincidencias(textos, palabras_clave, size):
-    textos_coincidentes = encontrar_coincidencias_con_sinonimos(textos, palabras_clave)
+def devuelve_las_mejores_coincidencias(textos, detalles_post, post,size,return_size):
+    textos_coincidentes = encontrar_coincidencias_con_sinonimos(textos, detalles_post.post_keywords)
 
     # Ordenar la lista de textos por puntaje en orden descendente
     textos_coincidentes.sort(
@@ -111,7 +111,7 @@ def devuelve_las_mejores_coincidencias(textos, palabras_clave, size):
     # Seleccionar los tres mejores textos
     mejores_textos = textos_coincidentes[:size]
     
-    open_ia()
+    # open_ia()
 
     return mejores_textos
 
@@ -127,9 +127,8 @@ def open_ia(temperature, messages):
     # Datos de la solicitud en formato JSON
     data = {
         "model": "gpt-3.5-turbo",
-        "messages": [{"role": "System", "content":
-        "When I ask for help to write something, you will reply with a document that contains at least one joke or playful comment in every paragraph."}],
-        "temperature": 0.7,
+        "messages": messages,
+        "temperature": temperature,
     }
 
     # Encabezados de la solicitud
