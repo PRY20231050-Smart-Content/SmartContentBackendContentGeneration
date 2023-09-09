@@ -25,6 +25,6 @@ urlpatterns = [
     path('generate-post/', views.PostTemplateView.as_view(), name='get'),
     path('get-post-detail/<int:post_id>/', views.PostDetailView.as_view(), name='get'),
     path('send-message/', views.MessageTemplateView.as_view(), name='post'),
-    path('delete-post/', views.PostsView.as_view(), name='delete'),
+    path('delete-post/<int:post_id>/', views.PostsView.as_view(), name='delete'),
 
 ]
