@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.http import HttpResponse
 from rest_framework import status
-from django.db import connection
+from django.db import connection, transaction
 from django.core.paginator import Paginator, Page
 from rest_framework.decorators import api_view
 from datetime import datetime
@@ -384,4 +384,36 @@ class MessageTemplateView(APIView):
 
         except Exception as e:
             # Puedes registrar la excepción aquí para depurarla posteriormente
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        
+    def put(self, request):
+        try:
+            # POST
+            message_id = request.data.get('id')
+            chosen = request.data.get('chosen')
+            post_id = request.data.get('postId')
+
+            with transaction.atomic():  # Use a transaction to ensure data consistency
+
+                try:
+                    # Find the post that corresponds to the selected message
+                    selected_message = Messages.objects.get(id=message_id)
+                except Messages.DoesNotExist:
+                    return Response({'error': 'El mensaje que intentas actualizar no existe.'}, status=status.HTTP_404_NOT_FOUND)
+                
+                # Update the chosen field for the selected message
+                selected_message.chosen = chosen
+                selected_message.save()
+
+                # Get all messages belonging to the same post
+                other_messages = Messages.objects.filter(post_id=post_id).exclude(id=message_id)
+
+                # Update the chosen field for all other messages to 0
+                other_messages.update(chosen=0)
+
+            return Response({'message': 'Message updated.'}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # Handle exceptions here
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
