@@ -193,7 +193,7 @@ class PostChatView(APIView):
                 if data:
                     formatted_data = [
                         {
-                            'message': row[0],
+                            'message': json.loads(row[0]),
                             'chosen': row[1],
                             'senderId': row[2],
                             'time': row[3],
@@ -259,8 +259,15 @@ class PostTemplateView(APIView):
 
                 
               mejores_textos=  devuelve_las_mejores_coincidencias(lista_de_copies,post_detail,post_data, 3, 3)
-
+              
+            mensaje_predeterminado = 'Bienvenido! Escoge entre estas opciones'
             
+            with connection.cursor() as cursor:
+                    cursor.execute(
+                        """INSERT INTO posts_messages (content, created_at, `role`, chosen, post_id,selectable)
+                        VALUES (%s, %s, %s, %s, %s, %s)""",
+                        [json.dumps(mensaje_predeterminado), datetime.now(), 'system', 0, post_object.id, 'no']
+                    )
             
             for choice in mejores_textos:
                 print('choice', choice)
@@ -273,21 +280,21 @@ class PostTemplateView(APIView):
                 # Realiza la inserción en la tabla posts_messages
                 with connection.cursor() as cursor:
                     cursor.execute(
-                        """INSERT INTO posts_messages (content, created_at, `role`, chosen, post_id)
-                        VALUES (%s, %s, %s, %s, %s)""",
-                        [json.dumps(content), datetime.now(), 'system', 0, post_object.id]
+                        """INSERT INTO posts_messages (content, created_at, `role`, chosen, post_id,selectable)
+                        VALUES (%s, %s, %s, %s, %s, %s)""",
+                        [json.dumps(content), datetime.now(), 'system', 0, post_object.id, 'yes']
                     )
                     
                 # Realiza la inserción en la tabla posts_messages
                 with connection.cursor() as cursor:
                     cursor.execute(
                         """select content from posts_messages where post_id = %s  """, [post_object.id])
-                    data = cursor.fetchall()
-                    #convertir de json a diccionario
-                   # Extract the content from the fetched rows and load JSON
-                    json_data = [json.loads(row[0]) for row in data]
+                #     data = cursor.fetchall()
+                #     #convertir de json a diccionario
+                #    # Extract the content from the fetched rows and load JSON
+                #     json_data = [json.loads(row[0]) for row in data]
 
-                    print('data', json_data)
+                #     print('data', json_data)
                     
                 
 
@@ -357,6 +364,16 @@ class MessageTemplateView(APIView):
                 created_at=timezone.now()
             )
             new_message.save()  # Guarda el detalle del post en la base de datos
+            
+            mensaje_predeterminado = 'Copie mejorado'
+            
+            with connection.cursor() as cursor:
+                    cursor.execute(
+                        """INSERT INTO posts_messages (content, created_at, `role`, chosen, post_id,selectable)
+                        VALUES (%s, %s, %s, %s, %s, %s)""",
+                        [json.dumps(mensaje_predeterminado), datetime.now(), 'system', 0, post_id, 'no']
+                    )
+            
 
             return Response({'message': 'Message created.'}, status=status.HTTP_200_OK)
 
