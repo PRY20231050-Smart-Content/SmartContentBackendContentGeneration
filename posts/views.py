@@ -218,7 +218,7 @@ class PostTemplateView(APIView):
             status_id = 'draft' # default when creating a post
             business_id = request.data.get('businessId')            
             post_data = {
-                'content': '',
+                'content': '""',
                 'published_at': None,
                 'image_url': None,
                 'status': status_id,
@@ -273,26 +273,26 @@ class PostTemplateView(APIView):
                         [json.dumps(mensaje_predeterminado), datetime.now(), 'system', 0, post_object.id, 'no']
                     )
             
-            for choice in mejores_textos:
-                print('choice', choice)
+            # for choice in mejores_textos:
+            #     print('choice', choice)
                 
-                content = choice['message']['content']
+            #     content = choice['message']['content']
                 
                
                 # print('content', message['role'])
 
                 # Realiza la inserción en la tabla posts_messages
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        """INSERT INTO posts_messages (content, created_at, `role`, chosen, post_id,selectable)
-                        VALUES (%s, %s, %s, %s, %s, %s)""",
-                        [json.dumps(content), datetime.now(), 'system', 0, post_object.id, 'yes']
-                    )
+                # with connection.cursor() as cursor:
+                #     cursor.execute(
+                #         """INSERT INTO posts_messages (content, created_at, `role`, chosen, post_id,selectable)
+                #         VALUES (%s, %s, %s, %s, %s, %s)""",
+                #         [json.dumps(content), datetime.now(), 'system', 0, post_object.id, 'yes']
+                #     )
                     
                 # Realiza la inserción en la tabla posts_messages
-                with connection.cursor() as cursor:
-                    cursor.execute(
-                        """select content from posts_messages where post_id = %s  """, [post_object.id])
+                # with connection.cursor() as cursor:
+                #     cursor.execute(
+                #         """select content from posts_messages where post_id = %s  """, [post_object.id])
                 #     data = cursor.fetchall()
                 #     #convertir de json a diccionario
                 #    # Extract the content from the fetched rows and load JSON
