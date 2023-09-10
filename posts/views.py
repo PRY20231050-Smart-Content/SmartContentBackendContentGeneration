@@ -273,8 +273,8 @@ class PostTemplateView(APIView):
                 # Realiza la inserción en la tabla posts_messages
                 with connection.cursor() as cursor:
                     cursor.execute(
-                        """INSERT INTO posts_messages (content, created_at, `role`, chosen, post_id)
-                        VALUES (%s, %s, %s, %s, %s)""",
+                        """INSERT INTO posts_messages (content, created_at, `role`, chosen, post_id, selectable)
+                        VALUES (%s, %s, %s, %s, %s,'yes')""",
                         [json.dumps(content), datetime.now(), 'system', 0, post_object.id]
                     )
 
