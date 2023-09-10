@@ -3,7 +3,7 @@ from django.db import models
 # Create your models here.
 class Posts(models.Model):
     id = models.AutoField(primary_key=True)
-    content = models.TextField()
+    content = models.TextField(db_collation='utf8mb4_unicode_ci')
     created_at = models.DateTimeField(auto_now_add=True)
     published_at = models.DateTimeField(null=True, blank=True)
     image_url = models.CharField(max_length=255, null=True, blank=True)  # Allow null and blank values

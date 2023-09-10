@@ -15,7 +15,8 @@ class Migration(migrations.Migration):
 
             CREATE PROCEDURE `get_post_chat`(p_post_id int)
             begin
-                select pm.content, pm.chosen, pm.`role`, pm.created_at from posts_messages pm where pm.post_id = p_post_id;
+                select pm.content, pm.chosen, pm.`role`, pm.created_at, pm.selectable,pm.id
+                from posts_messages pm where pm.post_id = p_post_id;
             END
         """)]
 

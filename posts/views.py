@@ -82,7 +82,7 @@ class PostsView(APIView):
                 formatted_data = [
                  {
                     'id': row[0],
-                    'content': row[1],
+                    'content': json.loads(row[1]),
                     'created_at': row[2],
                     'published_at': row[3],
                     'image_url': row[4],
@@ -138,11 +138,11 @@ class PostsView(APIView):
                 return Response({'error': 'El post que intentas actualizar no existe.'}, status=status.HTTP_404_NOT_FOUND)
 
             # Actualiza los campos del post existente
-            existing_post.updated_at = timezone.now()
+            existing_post.deleted_at = timezone.now()
             # Guarda los cambios en el post existente
             existing_post.save()
 
-            return Response({'message': 'Post actualizado.'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Post eliminado.'}, status=status.HTTP_200_OK)
 
         except Exception as e:
             # You can log the exception here for debugging purposes
@@ -154,6 +154,8 @@ class SavePostView(APIView):
         try:
             post_id = request.data.get('postId')
             content = request.data.get('content')
+            print('content', content)
+            content_with_quotes = f'"{content}"'
             published_at = request.data.get('published_at')
             image_url = request.data.get('image_url')
             status_id = request.data.get('status')
@@ -165,7 +167,7 @@ class SavePostView(APIView):
                 return Response({'error': 'El post que intentas actualizar no existe.'}, status=status.HTTP_404_NOT_FOUND)
 
             # Actualiza los campos del post existente
-            existing_post.content = content
+            existing_post.content = json.dumps(content)
             existing_post.published_at = published_at
             existing_post.image_url = image_url
             existing_post.status = status_id
@@ -197,6 +199,8 @@ class PostChatView(APIView):
                             'chosen': row[1],
                             'senderId': row[2],
                             'time': row[3],
+                            'selectable': row[4],
+                            'id': row[5],
                         } for row in data
                     ]
 
@@ -350,6 +354,7 @@ class MessageTemplateView(APIView):
             # POST
             post_id = request.data.get('postId')
             message_content = request.data.get('messageContent')
+            message_content_with_quotes = f'"{message_content}"'
             role_name = request.data.get('roleName')
             
             try:
@@ -358,7 +363,7 @@ class MessageTemplateView(APIView):
                 return Response({'error': 'El post que intentas actualizar no existe.'}, status=status.HTTP_404_NOT_FOUND)
                         
             new_message = Messages(
-                content=message_content,  
+                content=message_content_with_quotes,  
                 post= existing_post,
                 role=role_name,
                 created_at=timezone.now()
