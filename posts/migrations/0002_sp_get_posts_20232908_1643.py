@@ -26,16 +26,14 @@ CREATE PROCEDURE `sp_get_posts`(IN _text VARCHAR(250),
                         IN _status VARCHAR(50)
                         )
 BEGIN
-
-                DECLARE cc INT;
+ DECLARE cc INT;
 
                 SET npage=perpage*(npage-1);
 
                 select count(*) into cc
                 from posts_posts pp
-				left join businesses b on pp.business_id = b.id
-				left join clients c on b.client_id = c.id
-				left join users u on c.user_id = u.id
+				join businesses b on pp.business_id = b.id
+				join clients c on b.client_id = c.id
                 where pp.deleted_at is null
                 and if(_business_id is null, true, pp.business_id = _business_id)
                 and if(_client_id is null, true, b.client_id = _client_id)
@@ -46,14 +44,13 @@ BEGIN
                 AND IF(date_to IS NULL, TRUE,
                 DATE(pp.created_at) <= date_to);
 
-                select pp.id, pp.content, pp.created_at,  pp.published_at, 
+                select pp.id, ifnull(pp.content,"") content, pp.created_at,  pp.published_at,
                 pp.image_url, pp.status, b.name business_name,
                 cc cc,
                 b.logo_carpet business_image
                 from posts_posts pp
-				left join businesses b on pp.business_id = b.id
-				left join clients c on b.client_id = c.id
-				left join users u on c.user_id = u.id
+				join businesses b on pp.business_id = b.id
+				join clients c on b.client_id = c.id
                 where pp.deleted_at is null
                 and if(_business_id is null, true, pp.business_id = _business_id)
                 and if(_client_id is null, true, b.client_id = _client_id)
@@ -64,6 +61,5 @@ BEGIN
                 AND IF(date_to IS NULL, TRUE,
                 DATE(pp.created_at) <= date_to)
                 ORDER BY pp.created_at desc;
-
             END
         """)]
