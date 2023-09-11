@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('posts', '0007_get_post_chat_20230909_1445'),
+        ('posts', '0006_postdetail_products_to_include'),
     ]
 
     operations = [
