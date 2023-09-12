@@ -72,3 +72,31 @@ class PostDetail(models.Model):
 
     def __str__(self):
         return f"Post Detail {self.id}"
+
+# Model for survey questions
+class SurveyQuestion(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+# Model for post surveys
+class PostSurvey(models.Model):
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    post = models.ForeignKey('Posts', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Post Survey: {self.name} for Post: {self.post}"
+    
+# Model for post survey answers
+class PostSurveyAnswer(models.Model):
+    id = models.AutoField(primary_key=True)
+    post_survey = models.ForeignKey('PostSurvey', on_delete=models.CASCADE)
+    survey_question = models.ForeignKey('SurveyQuestion', on_delete=models.CASCADE)
+    answer = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"Answer to '{self.survey_question.name}' for '{self.post_survey.name}'"
