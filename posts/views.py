@@ -1,12 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 from django.db import connection, transaction
 from django.core.paginator import Paginator, Page
 from rest_framework.decorators import api_view
 from datetime import datetime
-from posts.models import Posts, PostDetail, Messages
+from posts.models import Posts, PostDetail, Messages, SurveyQuestion
 from posts.helpers.create_post_fn import create_post
 from posts.helpers.create_post_fn import devuelve_las_mejores_coincidencias
 from django.utils import timezone
@@ -409,3 +409,16 @@ class MessageTemplateView(APIView):
         except Exception as e:
             # Handle exceptions here
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SurveyQuestionsTemplateView(APIView):
+    def get(self, request):
+        questions = SurveyQuestion.objects.all().values('id', 'name')
+        questions_list = list(questions)
+        # Rename 'text' to 'name' and add 'answer' field (set to None) in each question
+        for question in questions_list:
+            question['text'] = question.pop('name')
+            question['answer'] = None  # Set answer to None
+        return JsonResponse(questions_list, safe=False)
+
+
+

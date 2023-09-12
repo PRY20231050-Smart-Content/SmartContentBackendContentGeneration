@@ -27,5 +27,6 @@ urlpatterns = [
     path('send-message/', views.MessageTemplateView.as_view(), name='post'),
     path('delete-post/<int:post_id>/', views.PostsView.as_view(), name='delete'),
     path('update-message/', views.MessageTemplateView.as_view(), name='put'),
+    path('get-survey-questions/', views.SurveyQuestionsTemplateView.as_view(), name='put'),
 
 ]
