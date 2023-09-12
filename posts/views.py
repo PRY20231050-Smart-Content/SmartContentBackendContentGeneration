@@ -260,9 +260,16 @@ class PostTemplateView(APIView):
               cursor.execute(""" SELECT c.id,c.copy, c.likes, c.shared  FROM copies c WHERE c.business_id = %s  """, [business_id])
               data = cursor.fetchall()
               lista_de_copies = [{'id': row[0],'copy': row[1], 'likes': row[2], 'shared': row[3]} for row in data]
+              
+            with connection.cursor() as cursor:
+              cursor.execute(""" SELECT id,post_ocassion,post_promo,post_objective,post_language,post_use_emojis,post_keywords,post_creativity,post_copy_size,post_include_business_info,post_id,products_to_include FROM posts_postdetail pp WHERE pp.post_id = %s  """, [post_object.id])
+              data_post_detalle = cursor.fetchall()
+              datos_post_detalle = [{'id': row[0],'post_ocassion': row[1], 'post_promo': row[2], 'post_objective': row[3], 'post_language': row[4], 'post_use_emojis': row[5], 'post_keywords': row[6], 'post_creativity': row[7], 'post_copy_size': row[8], 'post_include_business_info': row[9], 'post_id': row[10], 'products_to_include': row[11]} for row in data_post_detalle]
+              
+              print('datos_post_detalle', datos_post_detalle)
 
                 
-              mejores_textos=  devuelve_las_mejores_coincidencias(lista_de_copies,post_detail,post_data, 3, 3)
+            mejores_textos=  devuelve_las_mejores_coincidencias(lista_de_copies,datos_post_detalle,3, 3)
               
             mensaje_predeterminado = 'Bienvenido! Escoge entre estas opciones'
             
@@ -273,38 +280,21 @@ class PostTemplateView(APIView):
                         [json.dumps(mensaje_predeterminado), datetime.now(), 'system', 0, post_object.id, 'no']
                     )
             
-            # for choice in mejores_textos:
-            #     print('choice', choice)
+            for choice in mejores_textos:
                 
-            #     content = choice['message']['content']
+                content = choice['message']['content']
                 
                
                 # print('content', message['role'])
 
                 # Realiza la inserción en la tabla posts_messages
-                # with connection.cursor() as cursor:
-                #     cursor.execute(
-                #         """INSERT INTO posts_messages (content, created_at, `role`, chosen, post_id,selectable)
-                #         VALUES (%s, %s, %s, %s, %s, %s)""",
-                #         [json.dumps(content), datetime.now(), 'system', 0, post_object.id, 'yes']
-                #     )
-                    
-                # Realiza la inserción en la tabla posts_messages
-                # with connection.cursor() as cursor:
-                #     cursor.execute(
-                #         """select content from posts_messages where post_id = %s  """, [post_object.id])
-                #     data = cursor.fetchall()
-                #     #convertir de json a diccionario
-                #    # Extract the content from the fetched rows and load JSON
-                #     json_data = [json.loads(row[0]) for row in data]
-
-                #     print('data', json_data)
-                    
-                
-
-            
-            
-              
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """INSERT INTO posts_messages (content, created_at, `role`, chosen, post_id,selectable)
+                        VALUES (%s, %s, %s, %s, %s, %s)""",
+                        [json.dumps(content), datetime.now(), 'system', 0, post_object.id, 'yes']
+                    )
+                               
             
 
             return Response({'message': 'Post created.', 'post': post_data,'mejores_textos':mejores_textos}, status=status.HTTP_200_OK)

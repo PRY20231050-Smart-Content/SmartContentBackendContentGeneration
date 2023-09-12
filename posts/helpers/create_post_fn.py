@@ -98,11 +98,25 @@ def encontrar_coincidencias_con_sinonimos(textos, palabras_clave):
                                 texto["id"]
                             )  # Agregamos el ID al conjunto
                             break  # Rompe el bucle si encuentra una coincidencia
-    return textos_con_coincidencias  # Devolvemos la lista de diccionarios completos sin IDs repetidos
+    if len(textos_con_coincidencias) == 0:
+        return textos  # Devolvemos la lista de diccionarios completa si no hay coincidencias
+    else:                    
+        return textos_con_coincidencias  # Devolvemos la lista de diccionarios completos sin IDs repetidos
 
+def cantidad_palabras(texto):
+    if texto == 'Short':
+        return 30
+    elif texto == 'Medium':
+        return 90
+    elif texto == 'High':
+        return 150
+    else:
+        return 30
 
-def devuelve_las_mejores_coincidencias(textos, detalles_post, post,size,return_size):
-    textos_coincidentes = encontrar_coincidencias_con_sinonimos(textos, detalles_post.post_keywords)
+def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
+    
+    
+    textos_coincidentes = encontrar_coincidencias_con_sinonimos(textos, detalles_post[0]['post_keywords'])
 
     # Ordenar la lista de textos por puntaje en orden descendente
     textos_coincidentes.sort(
@@ -112,13 +126,93 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post, post,size,return_s
     # Seleccionar los tres mejores textos
     mejores_textos = textos_coincidentes[:size]
     
-    messages = [
-    {"role": "system", "content": "Optimiza este prompt para que sea más efectivo al solicitar al rol asistente que responda como el usuario después de recibir el contenido del asistente."},
-    {"role": "assistant", "content": "Tired of old floor stains ruining your business's appearance? Say goodbye to dirt, grime, and wax buildup with our professional floor cleaning services! ✨\n\nWe use advanced techniques and state-of-the-art equipment to deep clean and restore all types of flooring surfaces. Save time and energy – let us handle the scrubbing while you focus on what you do best! 💼\n\nContact us today for a free consultation:\n📲 Call (951) 403 4384, (909) 258 1797, or (909) 485 6647\n📩 Email: frankjaviord@gmail.com"},
-   
-    ]
+    # messages role assistant deberia tener la misma cantidad que mejores_textos
+    print("detalles_post",detalles_post)
     
-    respuesta_ia= open_ia(1,messages,3)
+    messages = []
+        # Determinar el idioma del mensaje de sistema
+    if detalles_post[0]['post_language'] == 'Spanish':
+        # Crear un mensaje de sistema en español
+        system_message = {
+            "role": "system",
+            "content": f"Eres un creador de contenido experto en publicaciones para facebook en el idioma {detalles_post[0]['post_language']} de máximo {cantidad_palabras(detalles_post[0]['post_copy_size'])} tokens de longitud. Con la siguientes caracteristicas:"
+        }
+    else:
+        # Crear un mensaje de sistema en inglés por defecto
+        system_message = {
+            "role": "system",
+            "content": f"You are an expert content creator for facebook in the language {detalles_post[0]['post_language']} with a maximum of {cantidad_palabras(detalles_post[0]['post_copy_size'])} tokens in length. With the following characteristics:"
+        }
+
+    # Verificar si no se deben usar emojis y agregar esa parte al mensaje
+    if detalles_post[0]['post_use_emojis'] == 'no' and detalles_post[0]['post_language'] == 'Spanish':
+        system_message["content"] += " No usa emojis en su contenido."
+    elif detalles_post[0]['post_use_emojis'] == 'no' and detalles_post[0]['post_language'] == 'English':
+        system_message["content"] += " Does not use emojis in its content."
+    elif detalles_post[0]['post_use_emojis'] == 'yes' and detalles_post[0]['post_language'] == 'Spanish':
+        system_message["content"] += " Usa emojis en su contenido."
+    else:
+        system_message["content"] += " Uses emojis in its content."
+    # Agregar el mensaje de sistema a la lista de mensajes
+    messages.append(system_message)
+    
+    
+    for texto in mejores_textos:
+        #si es el ultimo mensaje
+        messages.append({"role": "user", "content": "Aqui tienes un ejemplo de copy para un post de tu negocio"})   
+        messages.append({"role": "assistant", "content": texto["copy"]})
+      
+        # Crear un mensaje de usuario con los detalles del post si tienen datos
+    # Si hay detalles de post, agregar un mensaje de usuario con los detalles
+    if detalles_post:
+        # Crear un mensaje de usuario con los detalles del post inglés por defecto
+        
+        if detalles_post[0]['post_language'] == 'Spanish':
+           user_message = {
+            "role": "user",
+            "content": "Genera un copy para mi post con las siguientes características:\n"
+            }
+           # Definir una lista de campos a incluir español
+           campos_a_incluir = [
+                 ('Ocasion', detalles_post[0]['post_ocassion']),
+                 ('Promocion', detalles_post[0]['post_promo']),
+                 ('Objetivo', detalles_post[0]['post_objective']),
+                 ('Palabras Clave', detalles_post[0]['post_keywords']),
+                 ('Incluir Información del Negocio', detalles_post[0]['post_include_business_info']),
+                 ('Productos a Incluir', detalles_post[0]['products_to_include']),
+                ]
+           for campo, valor in campos_a_incluir:
+                if valor and (campo != 'Palabras Clave' or valor != '[]') and (campo != 'Incluir Información del Negocio' or valor != 'no') and (campo != 'Productos a Incluir' or valor != '[]'):
+                 user_message["content"] += f"{campo}: {valor}\n"
+        
+        else:
+            user_message = {
+            "role": "user",
+            "content": "Generate a copy for my post with the following characteristics:\n"
+            }
+            
+            # Definir una lista de campos a incluir
+            campos_a_incluir = [
+                ('Ocassion', detalles_post[0]['post_ocassion']),
+                ('Promo', detalles_post[0]['post_promo']),
+                ('Objective', detalles_post[0]['post_objective']),
+                ('Keywords', detalles_post[0]['post_keywords']),
+                ('Include Business Info', detalles_post[0]['post_include_business_info']),
+                ('Products to Include', detalles_post[0]['products_to_include']),
+            ]
+                # Agregar los campos si tienen datos
+            for campo, valor in campos_a_incluir:
+                if valor and (campo != 'Keywords' or valor != '[]') and (campo != 'Include Business Info' or valor != 'no') and (campo != 'Products to Include' or valor != '[]'):
+                 user_message["content"] += f"{campo}: {valor}\n"
+        
+       
+
+        # Agregar el mensaje de usuario a la lista de mensajes
+        messages.append(user_message)
+    
+    print("messages",messages)
+    
+    respuesta_ia= open_ia(detalles_post[0]['post_creativity']/5 ,messages,3)
 
     return respuesta_ia
 
@@ -130,13 +224,8 @@ def open_ia(temperature, messages,tamano_respuesta):
 
     completion = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
-    messages=messages,n=tamano_respuesta,max_tokens=50,temperature=temperature)
-    
-    print(json.dumps(completion.choices))
-
-    for choice in completion.choices:
-        print(choice.message.content)
-        
+    messages=messages,n=tamano_respuesta,max_tokens=150,temperature=temperature)
+       
     return completion.choices
     
     
