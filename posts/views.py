@@ -6,7 +6,7 @@ from django.db import connection, transaction
 from django.core.paginator import Paginator, Page
 from rest_framework.decorators import api_view
 from datetime import datetime
-from posts.models import Posts, PostDetail, Messages, SurveyQuestion
+from posts.models import Posts, PostDetail, Messages, SurveyQuestion, PostSurvey, PostSurveyAnswer
 from posts.helpers.create_post_fn import create_post
 from posts.helpers.create_post_fn import devuelve_las_mejores_coincidencias
 from posts.helpers.create_post_fn import creador_de_mensajes
@@ -452,5 +452,24 @@ class SurveyQuestionsTemplateView(APIView):
             question['answer'] = None  # Set answer to None
         return JsonResponse(questions_list, safe=False)
 
+    def post(self, request):
+        try:
+            # Assuming you have the post_id and answers array in your request data
+            post_id = request.data.get('post_id')
+            answers = request.data.get('answers')
 
+            # Create the PostSurvey object
+            post_survey = PostSurvey.objects.create(name="Survey Name", post_id=post_id)
+
+            # Loop through the answers and create PostSurveyAnswer objects
+            for answer in answers:
+                answer_id = answer.get('answer_id')
+                # Create a PostSurveyAnswer associated with the PostSurvey
+                PostSurveyAnswer.objects.create(post_survey=post_survey, answer_id=answer_id)
+
+            return Response({'message': 'Survey created successfully'}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # Handle exceptions
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
