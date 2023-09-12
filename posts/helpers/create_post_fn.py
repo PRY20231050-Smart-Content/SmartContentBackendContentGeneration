@@ -9,7 +9,7 @@ import openai
 
 
 def create_post(post_data):
-    print("create post")
+
     try:
         # Create a new Posts instance and set its attributes
         new_post = Posts(
@@ -21,8 +21,6 @@ def create_post(post_data):
             status=post_data["status"],
             business_id=post_data["business_id"],
         )
-
-        print("create post 1")
 
         # Save the new instance to the database
         new_post.save()
@@ -105,13 +103,13 @@ def encontrar_coincidencias_con_sinonimos(textos, palabras_clave):
 
 def cantidad_palabras(texto):
     if texto == 'Short':
-        return 30
+        return 5
     elif texto == 'Medium':
-        return 90
+        return 25
     elif texto == 'High':
-        return 150
+        return 50
     else:
-        return 30
+        return 5
 
 def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
     
@@ -125,23 +123,20 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
 
     # Seleccionar los tres mejores textos
     mejores_textos = textos_coincidentes[:size]
-    
-    # messages role assistant deberia tener la misma cantidad que mejores_textos
-    print("detalles_post",detalles_post)
-    
+        
     messages = []
         # Determinar el idioma del mensaje de sistema
     if detalles_post[0]['post_language'] == 'Spanish':
         # Crear un mensaje de sistema en español
         system_message = {
             "role": "system",
-            "content": f"Eres un creador de contenido experto en publicaciones para facebook en el idioma {detalles_post[0]['post_language']} de máximo {cantidad_palabras(detalles_post[0]['post_copy_size'])} tokens de longitud. Con la siguientes caracteristicas:"
+            "content": f"Eres un creador de contenido experto en publicaciones para facebook en el idioma {detalles_post[0]['post_language']}. El texto generado es de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Con la siguientes caracteristicas:"
         }
     else:
         # Crear un mensaje de sistema en inglés por defecto
         system_message = {
             "role": "system",
-            "content": f"You are an expert content creator for facebook in the language {detalles_post[0]['post_language']} with a maximum of {cantidad_palabras(detalles_post[0]['post_copy_size'])} tokens in length. With the following characteristics:"
+            "content": f"You are an expert content creator for facebook in the language {detalles_post[0]['post_language']} with a maximum of {cantidad_palabras(detalles_post[0]['post_copy_size'])} tokens words. With the following characteristics:"
         }
 
     # Verificar si no se deben usar emojis y agregar esa parte al mensaje
@@ -209,8 +204,9 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
 
         # Agregar el mensaje de usuario a la lista de mensajes
         messages.append(user_message)
+        
+        print("messages",messages)
     
-    print("messages",messages)
     
     respuesta_ia= open_ia(detalles_post[0]['post_creativity']/5 ,messages,3)
 
@@ -227,7 +223,98 @@ def open_ia(temperature, messages,tamano_respuesta):
     messages=messages,n=tamano_respuesta,max_tokens=150,temperature=temperature)
        
     return completion.choices
-    
-    
 
+
+def mensaje_sistema(detalles_post):
+         # Determinar el idioma del mensaje de sistema
+    if detalles_post[0]['post_language'] == 'Spanish':
+        # Crear un mensaje de sistema en español
+        system_message = {
+            "role": "system",
+            "content": f"Eres un creador de contenido experto en publicaciones para facebook en el idioma {detalles_post[0]['post_language']} de máximo {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Con la siguientes caracteristicas:"
+        }
+    else:
+        # Crear un mensaje de sistema en inglés por defecto
+        system_message = {
+            "role": "system",
+            "content": f"You are an expert content creator for facebook in the language {detalles_post[0]['post_language']} with a maximum of {cantidad_palabras(detalles_post[0]['post_copy_size'])} words. With the following characteristics:"
+        }
+    return system_message;
+        # Agregar el mensaje de sistema a la lista de mensajes
+    
+def mensaje_usuario_chosen(detalles_post):
+
+     #si es el ultimo mensaje       
+    if detalles_post[0]['post_language'] == 'Spanish':
+
+        user_message = { "role": "user", "content": "Genera un copy para mi post con las siguientes características:\n" }
+         # Definir una lista de campos a incluir español
+        campos_a_incluir = [
+                 ('Ocasion', detalles_post[0]['post_ocassion']),
+                 ('Promocion', detalles_post[0]['post_promo']),
+                 ('Objetivo', detalles_post[0]['post_objective']),
+                 ('Palabras Clave', detalles_post[0]['post_keywords']),
+                 ('Incluir Información del Negocio', detalles_post[0]['post_include_business_info']),
+                 ('Productos a Incluir', detalles_post[0]['products_to_include']),
+                ]
+        for campo, valor in campos_a_incluir:
+                if valor and (campo != 'Palabras Clave' or valor != '[]') and (campo != 'Incluir Información del Negocio' or valor != 'no') and (campo != 'Productos a Incluir' or valor != '[]'):
+                 user_message["content"] += f"{campo}: {valor}\n"
+                 
+   
+    else:
+        user_message = {
+            "role": "user",
+            "content": "Generate a copy for my post with the following characteristics:\n"
+            }
+            
+            # Definir una lista de campos a incluir
+        campos_a_incluir = [
+                ('Ocassion', detalles_post[0]['post_ocassion']),
+                ('Promo', detalles_post[0]['post_promo']),
+                ('Objective', detalles_post[0]['post_objective']),
+                ('Keywords', detalles_post[0]['post_keywords']),
+                ('Include Business Info', detalles_post[0]['post_include_business_info']),
+                ('Products to Include', detalles_post[0]['products_to_include']),
+            ]
+                # Agregar los campos si tienen datos
+        for campo, valor in campos_a_incluir:
+                if valor and (campo != 'Keywords' or valor != '[]') and (campo != 'Include Business Info' or valor != 'no') and (campo != 'Products to Include' or valor != '[]'):
+                 user_message["content"] += f"{campo}: {valor}\n"    
+
+        # Agregar el mensaje de usuario a la lista de mensajes
+
+    return user_message;
+
+def determinar_role(role):
+    if role == "system":
+        return "assistant"
+    elif role == "user":
+        return "user"
+    else:
+        return "assistant"
+    
+def creador_de_mensajes(textos_choseen,textos_historial, detalles_post):
+    
+    messages = []
+    # Crear mensaje del sistema
+    system_message = mensaje_sistema(detalles_post)
+    messages.append(system_message)       
+    #Crear mensaje usuario del elegido
+    mensaje_usuario_chosen_data = mensaje_usuario_chosen(detalles_post)   
+    messages.append(mensaje_usuario_chosen_data) 
+    # Crear mensaje del assitent con el texto del elegido    
+    messages.append({"role": "assistant", "content": json.loads(textos_choseen[0]["content"])})   
+    # mandarle historial de mensajes
+    
+    for texto in textos_historial:
+        #si el role es system ingresa assistant si el role es user ingresa user
+        messages.append({"role": determinar_role(texto["role"]), "content": json.loads(texto["content"])})     
+
+    print("messages",messages)
+    data_contenido = open_ia(detalles_post[0]['post_creativity']/5, messages,1)
+    
+    return data_contenido;
+    
+    
     

@@ -9,6 +9,7 @@ from datetime import datetime
 from posts.models import Posts, PostDetail, Messages
 from posts.helpers.create_post_fn import create_post
 from posts.helpers.create_post_fn import devuelve_las_mejores_coincidencias
+from posts.helpers.create_post_fn import creador_de_mensajes
 from django.utils import timezone
 from unidecode import unidecode
 import json
@@ -264,9 +265,9 @@ class PostTemplateView(APIView):
               lista_de_copies = [{'id': row[0],'copy': row[1], 'likes': row[2], 'shared': row[3]} for row in data]
               
             with connection.cursor() as cursor:
-              cursor.execute(""" SELECT id,post_ocassion,post_promo,post_objective,post_language,post_use_emojis,post_keywords,post_creativity,post_copy_size,post_include_business_info,post_id,products_to_include FROM posts_postdetail pp WHERE pp.post_id = %s  """, [post_object.id])
+              cursor.execute(""" SELECT id,post_ocassion,post_promo,post_objective,post_language,post_use_emojis,post_keywords,post_creativity,post_copy_size,post_include_business_info,post_id,products_to_include,products_to_include_names FROM posts_postdetail pp WHERE pp.post_id = %s  """, [post_object.id])
               data_post_detalle = cursor.fetchall()
-              datos_post_detalle = [{'id': row[0],'post_ocassion': row[1], 'post_promo': row[2], 'post_objective': row[3], 'post_language': row[4], 'post_use_emojis': row[5], 'post_keywords': row[6], 'post_creativity': row[7], 'post_copy_size': row[8], 'post_include_business_info': row[9], 'post_id': row[10], 'products_to_include': row[11]} for row in data_post_detalle]
+              datos_post_detalle = [{'id': row[0],'post_ocassion': row[1], 'post_promo': row[2], 'post_objective': row[3], 'post_language': row[4], 'post_use_emojis': row[5], 'post_keywords': row[6], 'post_creativity': row[7], 'post_copy_size': row[8], 'post_include_business_info': row[9], 'post_id': row[10], 'products_to_include': row[11], 'products_to_include_names':row[12]} for row in data_post_detalle]
               
               print('datos_post_detalle', datos_post_detalle)
 
@@ -371,7 +372,38 @@ class MessageTemplateView(APIView):
                         [json.dumps(mensaje_predeterminado), datetime.now(), 'system', 0, post_id, 'no']
                     )
             
-
+            with connection.cursor() as cursor:
+                        cursor.execute(""" SELECT id,content,role FROM posts_messages pm   WHERE post_id = %s AND chosen = 1;
+                                        """, [post_id])
+                        data_posts_messages_chosen = cursor.fetchall()
+                        datos_posts_messages_choseen = [{'id': row[0],'content': row[1], 'role': row[2]} for row in data_posts_messages_chosen]
+                        
+            with connection.cursor() as cursor:
+                        cursor.execute(""" SELECT id,content,role FROM posts_messages pm
+                                            WHERE post_id = %s AND chosen <> 1;  
+                                        """, [post_id])
+                        data_posts_messages = cursor.fetchall()
+                        datos_posts_messages = [{'id': row[0],'content': row[1], 'role': row[2]} for row in data_posts_messages]
+             
+            with connection.cursor() as cursor:
+              cursor.execute(""" SELECT id,post_ocassion,post_promo,post_objective,post_language,post_use_emojis,post_keywords,post_creativity,post_copy_size,post_include_business_info,post_id,products_to_include,products_to_include_names FROM posts_postdetail pp WHERE pp.post_id = %s  """, [post_id])
+              data_post_detalle = cursor.fetchall()
+              datos_post_detalle = [{'id': row[0],'post_ocassion': row[1], 'post_promo': row[2], 'post_objective': row[3], 'post_language': row[4], 'post_use_emojis': row[5], 'post_keywords': row[6], 'post_creativity': row[7], 'post_copy_size': row[8], 'post_include_business_info': row[9], 'post_id': row[10], 'products_to_include': row[11], 'products_to_include_names':row[12]} for row in data_post_detalle] 
+             
+                        
+            contenido_a_insertar = creador_de_mensajes(datos_posts_messages_choseen,datos_posts_messages,datos_post_detalle)
+            
+            
+            for choice in contenido_a_insertar:
+                
+                content = choice['message']['content']
+                # Realiza la inserción en la tabla posts_messages
+                with connection.cursor() as cursor:
+                    cursor.execute(
+                        """INSERT INTO posts_messages (content, created_at, `role`, chosen, post_id,selectable)
+                        VALUES (%s, %s, %s, %s, %s, %s)""",
+                        [json.dumps(content), datetime.now(), 'system', 0, post_id, 'yes']
+                    )
             return Response({'message': 'Message created.'}, status=status.HTTP_200_OK)
 
         except Exception as e:
