@@ -68,6 +68,7 @@ class PostDetail(models.Model):
     ]
     post_include_business_info = models.CharField(max_length=3, choices=POST_INCLUDE_BUSINESS_INFO_CHOICES)
     products_to_include = models.JSONField()
+    products_to_include_names = models.JSONField()
 
     def __str__(self):
         return f"Post Detail {self.id}"
