@@ -91,6 +91,7 @@ class PostsView(APIView):
                     'business_name': row[6],
                     'cc': row[7],
                     'business_image': row[8],
+                    'last_survey_id': row[9],
                  } for row in data_page
                 ]
 
@@ -455,7 +456,7 @@ class SurveyQuestionsTemplateView(APIView):
     def post(self, request):
         try:
             # Assuming you have the post_id and answers array in your request data
-            post_id = request.data.get('post_id')
+            post_id = request.data.get('postId')
             answers = request.data.get('answers')
 
             # Create the PostSurvey object
@@ -463,13 +464,29 @@ class SurveyQuestionsTemplateView(APIView):
 
             # Loop through the answers and create PostSurveyAnswer objects
             for answer in answers:
-                answer_id = answer.get('answer_id')
+                answer_id = answer.get('id')
+                answer_number = answer.get('answer')
+                try:
+                    # Find the post that corresponds to the selected message
+                    selected_question = SurveyQuestion.objects.get(id=answer_id)
+                except Messages.DoesNotExist:
+                    return Response({'error': 'La pregunta que intentas buscar no existe.'}, status=status.HTTP_404_NOT_FOUND)
                 # Create a PostSurveyAnswer associated with the PostSurvey
-                PostSurveyAnswer.objects.create(post_survey=post_survey, answer_id=answer_id)
+                PostSurveyAnswer.objects.create(post_survey=post_survey, survey_question=selected_question, answer = answer_number)
 
-            return Response({'message': 'Survey created successfully'}, status=status.HTTP_200_OK)
+            return Response({'message': 'Survey created successfully', 'post_survey_id': post_survey.id}, status=status.HTTP_200_OK)
 
         except Exception as e:
             # Handle exceptions
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+class SurveyAnswersTemplateView(APIView):
+    def get(self, request):
+        post_survey_id = request.data.get('postSurveyId')
+        questions = PostSurveyAnswer.objects.all().values('id', 'name')
+        questions_list = list(questions)
+        # Rename 'text' to 'name' and add 'answer' field (set to None) in each question
+        for question in questions_list:
+            question['text'] = question.pop('name')
+            question['answer'] = None  # Set answer to None
+        return JsonResponse(questions_list, safe=False)
