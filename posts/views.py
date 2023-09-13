@@ -11,7 +11,7 @@ from posts.helpers.create_post_fn import create_post
 from posts.helpers.create_post_fn import devuelve_las_mejores_coincidencias
 from posts.helpers.create_post_fn import creador_de_mensajes
 from django.utils import timezone
-from unidecode import unidecode
+
 import json
 
 class PostsView(APIView):
@@ -263,7 +263,10 @@ class PostTemplateView(APIView):
             with connection.cursor() as cursor:
               cursor.execute(""" SELECT c.id,c.copy, c.likes, c.shared  FROM copies c WHERE c.business_id = %s  """, [business_id])
               data = cursor.fetchall()
+              print(data)
               lista_de_copies = [{'id': row[0],'copy': row[1], 'likes': row[2], 'shared': row[3]} for row in data]
+
+              print('lista_de_copies',lista_de_copies)
               
               
             with connection.cursor() as cursor:

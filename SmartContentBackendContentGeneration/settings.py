@@ -80,16 +80,16 @@ WSGI_APPLICATION = 'SmartContentBackendContentGeneration.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tesis',
+        'NAME': 'tesis2',
         'USER': 'root',
         'PASSWORD': 'root',
         'HOST': 'localhost',
         'PORT': '3306',
-    },
-      'OPTIONS': {
+         'OPTIONS': {
             'charset': 'utf8mb4',
-            'collation': 'utf8mb4_general_ci',
         },
+    },
+ 
 }
 
 
