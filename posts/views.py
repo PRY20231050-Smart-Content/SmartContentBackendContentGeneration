@@ -481,12 +481,30 @@ class SurveyQuestionsTemplateView(APIView):
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class SurveyAnswersTemplateView(APIView):
-    def get(self, request):
-        post_survey_id = request.data.get('postSurveyId')
-        questions = PostSurveyAnswer.objects.all().values('id', 'name')
-        questions_list = list(questions)
-        # Rename 'text' to 'name' and add 'answer' field (set to None) in each question
-        for question in questions_list:
-            question['text'] = question.pop('name')
-            question['answer'] = None  # Set answer to None
-        return JsonResponse(questions_list, safe=False)
+    def get(self, request, post_survey_id):
+        try:
+            # Get PostSurveyAnswer objects based on post_survey_id
+            post_survey_answers = PostSurveyAnswer.objects.filter(post_survey_id=post_survey_id)
+            
+            # Create a list to store the results
+            questions_list = []
+
+            # Loop through PostSurveyAnswer objects
+            for post_survey_answer in post_survey_answers:
+                # Retrieve the related SurveyQuestion
+                survey_question = SurveyQuestion.objects.get(id=post_survey_answer.survey_question_id)
+                
+                # Create a dictionary with the required fields
+                question_data = {
+                    'id': survey_question.id,
+                    'text': survey_question.name,
+                    'answer': post_survey_answer.answer
+                }
+
+                questions_list.append(question_data)
+
+            return JsonResponse(questions_list, safe=False)
+
+        except Exception as e:
+            # Handle exceptions
+            return JsonResponse({'error': str(e)}, status=500)
