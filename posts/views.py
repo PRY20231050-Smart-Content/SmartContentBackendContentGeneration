@@ -13,6 +13,9 @@ from posts.helpers.create_post_fn import creador_de_mensajes
 from django.utils import timezone
 from unidecode import unidecode
 import json
+import boto3
+from rest_framework.parsers import FileUploadParser
+from django.conf import settings  # Importa la configuración de settings.py
 
 class PostsView(APIView):
 
@@ -516,3 +519,38 @@ class SurveyAnswersTemplateView(APIView):
         except Exception as e:
             # Handle exceptions
             return JsonResponse({'error': str(e)}, status=500)
+        
+
+class FileUploadView(APIView):
+    parser_class = (FileUploadParser,)
+
+    def post(self, request, *args, **kwargs):
+        file_obj = request.data['file']
+
+        # Usa las variables de configuración de settings.py
+        aws_access_key_id = settings.AWS_ACCESS_KEY_ID
+        aws_secret_access_key = settings.AWS_SECRET_ACCESS_KEY
+        region_name = settings.AWS_S3_REGION_NAME
+        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+
+        print('aws_access_key_id ', aws_access_key_id)
+
+        # Nombre del archivo en S3 (puede ser el mismo nombre que el archivo original)
+        file_name = file_obj.name
+
+        try:
+            # Configura la conexión a S3
+            s3 = boto3.client('s3',
+                              aws_access_key_id=aws_access_key_id,
+                              aws_secret_access_key=aws_secret_access_key,
+                              region_name=region_name)
+
+            # Sube el archivo a S3
+            s3.upload_fileobj(file_obj, bucket_name, file_name)
+
+            # Genera la URL del archivo en S3
+            file_url = f'https://{bucket_name}.s3.amazonaws.com/{file_name}'
+
+            return Response({'file_url': file_url})
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
