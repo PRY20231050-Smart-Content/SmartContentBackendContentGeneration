@@ -132,8 +132,22 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
         # Crear un mensaje de sistema en español
         system_message = {
             "role": "system",
-            "content": f"Eres un creador de contenido hábil con un profundo conocimiento en marketing en redes sociales del negocio de . Tu objetivo es ayudar a los usuarios a elaborar publicaciones atractivas y cautivadoras en las redes sociales. Por favor, asegúrate de que tus respuestas sean creativas, relevantes y adaptadas a la solicitud del usuario. Si te hacen preguntas que no están relacionadas con la mejora o creación de contenido para redes sociales, indícales que esa pregunta no es válida y pídeles que lo intenten nuevamente centrados en el contenido de las redes sociales. Además, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras."
+            "content": f"Eres un creador de contenido hábil con un profundo conocimiento en marketing en redes sociales del negocio {detalles_post[0]['name']}. Tu objetivo es ayudar a los usuarios a elaborar publicaciones atractivas y cautivadoras en las redes sociales. Por favor, asegúrate de que tus respuestas sean creativas, relevantes y adaptadas a la solicitud del usuario. Si te hacen preguntas que no están relacionadas con la mejora o creación de contenido para redes sociales, indícales que esa pregunta no es válida y pídeles que lo intenten nuevamente centrados en el contenido de las redes sociales. Además, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras."
+
+        "Información adicional del negocio:"
+        f"- Público objetivo: {detalles_post[0]['target_audience']}"
+        f"- Misión: {detalles_post[0]['mission']}"
+        f"- Industria: {detalles_post[0]['industry_name']}"
+        f"- Página de Facebook: {detalles_post[0]['facebook_page']}"
+        f"- Sitio web: {detalles_post[0]['website']}"
+        f"- Visión: {detalles_post[0]['vision']}"
+
+        " Para obtener más detalles sobre el negocio y sus servicios, visita la página de Facebook o el sitio web mencionados anteriormente."
         }
+   
+
+
+
     else:
         # Crear un mensaje de sistema en inglés por defecto
         system_message = {
@@ -175,10 +189,10 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
                  ('Objetivo', detalles_post[0]['post_objective']),
                  ('Palabras Clave', detalles_post[0]['post_keywords']),
                  ('Incluir Información del Negocio', detalles_post[0]['post_include_business_info']),
-                 ('Productos a Incluir', detalles_post[0]['products_to_include']),
+                 ('Centrar el anuncio en la venta de estos servicios', detalles_post[0]['products_to_include_names']),
                 ]
            for campo, valor in campos_a_incluir:
-                if valor and (campo != 'Palabras Clave' or valor != '[]') and (campo != 'Incluir Información del Negocio' or valor != 'no') and (campo != 'Productos a Incluir' or valor != '[]'):
+                if valor and (campo != 'Palabras Clave' or valor != '[]') and (campo != 'Incluir Información del Negocio' or valor != 'no') and (campo != 'Centrar el anuncio en la venta de estos servicios' or valor != '[]'):
                  user_message["content"] += f"{campo}: {valor}\n"
         
         else:
@@ -255,8 +269,7 @@ def mensaje_usuario_chosen(detalles_post):
                  ('Promocion', detalles_post[0]['post_promo']),
                  ('Objetivo', detalles_post[0]['post_objective']),
                  ('Palabras Clave', detalles_post[0]['post_keywords']),
-                 ('Incluir Información del Negocio', detalles_post[0]['post_include_business_info']),
-                 ('Productos a Incluir', detalles_post[0]['products_to_include']),
+                 ('Centrar el copy en la venta de estos servicios', detalles_post[0]['products_to_include']),
                 ]
         for campo, valor in campos_a_incluir:
                 if valor and (campo != 'Palabras Clave' or valor != '[]') and (campo != 'Incluir Información del Negocio' or valor != 'no') and (campo != 'Productos a Incluir' or valor != '[]'):
