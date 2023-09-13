@@ -351,6 +351,7 @@ class PostDetailView(APIView):
 class MessageTemplateView(APIView):
     def post(self, request):
         try:
+            print('post')
             # POST
             post_id = request.data.get('postId')
             message_content = request.data.get('messageContent')
@@ -419,6 +420,7 @@ class MessageTemplateView(APIView):
         
         
     def put(self, request):
+        print('put')
         try:
             # POST
             message_id = request.data.get('id')
