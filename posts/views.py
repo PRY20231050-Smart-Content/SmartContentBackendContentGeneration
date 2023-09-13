@@ -1,12 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from rest_framework import status
 from django.db import connection, transaction
 from django.core.paginator import Paginator, Page
 from rest_framework.decorators import api_view
 from datetime import datetime
-from posts.models import Posts, PostDetail, Messages
+from posts.models import Posts, PostDetail, Messages, SurveyQuestion, PostSurvey, PostSurveyAnswer
 from posts.helpers.create_post_fn import create_post
 from posts.helpers.create_post_fn import devuelve_las_mejores_coincidencias
 from posts.helpers.create_post_fn import creador_de_mensajes
@@ -91,6 +91,7 @@ class PostsView(APIView):
                     'business_name': row[6],
                     'cc': row[7],
                     'business_image': row[8],
+                    'last_survey_id': row[9],
                  } for row in data_page
                 ]
 
@@ -447,3 +448,69 @@ class MessageTemplateView(APIView):
         except Exception as e:
             # Handle exceptions here
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SurveyQuestionsTemplateView(APIView):
+    def get(self, request):
+        questions = SurveyQuestion.objects.all().values('id', 'name')
+        questions_list = list(questions)
+        # Rename 'text' to 'name' and add 'answer' field (set to None) in each question
+        for question in questions_list:
+            question['text'] = question.pop('name')
+            question['answer'] = None  # Set answer to None
+        return JsonResponse(questions_list, safe=False)
+
+    def post(self, request):
+        try:
+            # Assuming you have the post_id and answers array in your request data
+            post_id = request.data.get('postId')
+            answers = request.data.get('answers')
+
+            # Create the PostSurvey object
+            post_survey = PostSurvey.objects.create(name="Survey Name", post_id=post_id)
+
+            # Loop through the answers and create PostSurveyAnswer objects
+            for answer in answers:
+                answer_id = answer.get('id')
+                answer_number = answer.get('answer')
+                try:
+                    # Find the post that corresponds to the selected message
+                    selected_question = SurveyQuestion.objects.get(id=answer_id)
+                except Messages.DoesNotExist:
+                    return Response({'error': 'La pregunta que intentas buscar no existe.'}, status=status.HTTP_404_NOT_FOUND)
+                # Create a PostSurveyAnswer associated with the PostSurvey
+                PostSurveyAnswer.objects.create(post_survey=post_survey, survey_question=selected_question, answer = answer_number)
+
+            return Response({'message': 'Survey created successfully', 'post_survey_id': post_survey.id}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # Handle exceptions
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SurveyAnswersTemplateView(APIView):
+    def get(self, request, post_survey_id):
+        try:
+            # Get PostSurveyAnswer objects based on post_survey_id
+            post_survey_answers = PostSurveyAnswer.objects.filter(post_survey_id=post_survey_id)
+            
+            # Create a list to store the results
+            questions_list = []
+
+            # Loop through PostSurveyAnswer objects
+            for post_survey_answer in post_survey_answers:
+                # Retrieve the related SurveyQuestion
+                survey_question = SurveyQuestion.objects.get(id=post_survey_answer.survey_question_id)
+                
+                # Create a dictionary with the required fields
+                question_data = {
+                    'id': survey_question.id,
+                    'text': survey_question.name,
+                    'answer': post_survey_answer.answer
+                }
+
+                questions_list.append(question_data)
+
+            return JsonResponse(questions_list, safe=False)
+
+        except Exception as e:
+            # Handle exceptions
+            return JsonResponse({'error': str(e)}, status=500)
