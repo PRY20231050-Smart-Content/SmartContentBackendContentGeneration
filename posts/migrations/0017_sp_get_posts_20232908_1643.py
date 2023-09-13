@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('posts', '0010_get_post_chat_20230909_1445'),
+        ('posts', '0016_insert_default_questions_20230911_2256'),
     ]
 
     operations = [
@@ -47,7 +47,8 @@ BEGIN
                 select pp.id, ifnull(pp.content,"") content, pp.created_at,  pp.published_at,
                 pp.image_url, pp.status, b.name business_name,
                 cc cc,
-                b.logo_carpet business_image
+                b.logo_carpet business_image,
+                (select MAX(pp2.id) from posts_postsurvey pp2 where pp2.post_id = pp.id) last_survey_id
                 from posts_posts pp
 				join businesses b on pp.business_id = b.id
 				join clients c on b.client_id = c.id
