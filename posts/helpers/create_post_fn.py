@@ -103,9 +103,9 @@ def encontrar_coincidencias_con_sinonimos(textos, palabras_clave):
 
 def cantidad_palabras(texto):
     if texto == 'Short':
-        return 5
+        return 20
     elif texto == 'Medium':
-        return 25
+        return 35
     elif texto == 'High':
         return 50
     else:
@@ -113,8 +113,10 @@ def cantidad_palabras(texto):
 
 def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
     
+    print("detalles_post",detalles_post)
     
     textos_coincidentes = encontrar_coincidencias_con_sinonimos(textos, detalles_post[0]['post_keywords'])
+    print("textos_coincidentes",textos_coincidentes)
 
     # Ordenar la lista de textos por puntaje en orden descendente
     textos_coincidentes.sort(
@@ -130,27 +132,17 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
         # Crear un mensaje de sistema en español
         system_message = {
             "role": "system",
-            "content": f"Eres un creador de contenido experto en publicaciones para facebook en el idioma {detalles_post[0]['post_language']}. El texto generado es de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Con la siguientes caracteristicas:"
+            "content": f"Eres un creador de contenido hábil con un profundo conocimiento en marketing en redes sociales del negocio de . Tu objetivo es ayudar a los usuarios a elaborar publicaciones atractivas y cautivadoras en las redes sociales. Por favor, asegúrate de que tus respuestas sean creativas, relevantes y adaptadas a la solicitud del usuario. Si te hacen preguntas que no están relacionadas con la mejora o creación de contenido para redes sociales, indícales que esa pregunta no es válida y pídeles que lo intenten nuevamente centrados en el contenido de las redes sociales. Además, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras."
         }
     else:
         # Crear un mensaje de sistema en inglés por defecto
         system_message = {
             "role": "system",
-            "content": f"You are an expert content creator for facebook in the language {detalles_post[0]['post_language']} with a maximum of {cantidad_palabras(detalles_post[0]['post_copy_size'])} tokens words. With the following characteristics:"
-        }
-
-    # Verificar si no se deben usar emojis y agregar esa parte al mensaje
-    if detalles_post[0]['post_use_emojis'] == 'no' and detalles_post[0]['post_language'] == 'Spanish':
-        system_message["content"] += " No usa emojis en su contenido."
-    elif detalles_post[0]['post_use_emojis'] == 'no' and detalles_post[0]['post_language'] == 'English':
-        system_message["content"] += " Does not use emojis in its content."
-    elif detalles_post[0]['post_use_emojis'] == 'yes' and detalles_post[0]['post_language'] == 'Spanish':
-        system_message["content"] += " Usa emojis en su contenido."
-    else:
-        system_message["content"] += " Uses emojis in its content."
-    # Agregar el mensaje de sistema a la lista de mensajes
-    messages.append(system_message)
+            "content": f"You are a skilled content creator with deep knowledge in social media marketing. Your goal is to assist users in crafting engaging and captivating social media posts. Please ensure that your responses are creative, relevant, and tailored to the user's request. If they ask questions unrelated to improving or creating content for social media, kindly inform them that the question is not valid and request them to try again with a focus on social media content. Additionally, please note that the generated text should be in the {detalles_post[0]['post_language']} language and consist of {cantidad_palabras(detalles_post[0]['post_copy_size'])} words."
+        }  
     
+    messages.append(system_message)
+
     
     for texto in mejores_textos:
         #si es el ultimo mensaje
@@ -164,9 +156,18 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
         
         if detalles_post[0]['post_language'] == 'Spanish':
            user_message = {
-            "role": "user",
-            "content": "Genera un copy para mi post con las siguientes características:\n"
-            }
+               "role": "user",
+               "content": f"Genera una publicación para un anuncio en Facebook. Asegúrate de que sea atractiva y utiliza las características de anuncios anteriores del mismo negocio como referencia. Usa tu creatividad para que se destaque. Además, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Cada anuncio debe ser único y no debe repetirse."
+           }
+           if detalles_post[0]['post_use_emojis'] == 'yes':
+               # Deja que la IA decida qué emojis incluir
+               user_message["content"] += "\nPor favor, incluye emojis en el contenido."
+           elif detalles_post[0]['post_use_emojis'] == 'no':
+                user_message["content"] += "\nPor favor, NO incluyas emojis en el contenido generado. NO NO NO NO"
+                
+        # Tambien, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras."
+           
+
            # Definir una lista de campos a incluir español
            campos_a_incluir = [
                  ('Ocasion', detalles_post[0]['post_ocassion']),
