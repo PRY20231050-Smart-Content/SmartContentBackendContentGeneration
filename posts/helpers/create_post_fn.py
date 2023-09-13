@@ -224,6 +224,21 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
     
     
     respuesta_ia= open_ia(detalles_post[0]['post_creativity']/5 ,messages,3)
+    
+    if detalles_post[0]['post_include_business_info'] == 'yes':
+        # Concatenar la información adicional
+        informacion_adicional = [
+            f"📲 Teléfono: {detalles_post[0]['phone']}",
+            f"🌐 Sitio web: {detalles_post[0]['website']}",
+            f"📧 Correo electrónico: {detalles_post[0]['mail']}",
+            f"⏰ Horario: {detalles_post[0]['schedule']}",
+        ]
+        
+        for choice in respuesta_ia:
+           choice['message']['content'] += "\n" + "\n".join(informacion_adicional)     
+
+        
+
 
     return respuesta_ia
 
