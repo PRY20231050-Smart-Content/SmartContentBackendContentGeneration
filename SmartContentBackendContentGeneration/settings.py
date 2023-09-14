@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'posts',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -145,7 +146,6 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     'http://localhost:8000',
 ]
 
-DEFAULT_FILE_STORAGE = "storages.backends.s3.S3Storage"
 AWS_ACCESS_KEY_ID = 'AKIA6BWVK4LFMHWTYIUL'
 AWS_SECRET_ACCESS_KEY = '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'
 AWS_STORAGE_BUCKET_NAME = 'amgsoftpre'
