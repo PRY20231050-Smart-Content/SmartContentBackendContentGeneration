@@ -10,6 +10,7 @@ from posts.models import Posts, PostDetail, Messages, SurveyQuestion, PostSurvey
 from posts.helpers.create_post_fn import create_post
 from posts.helpers.create_post_fn import devuelve_las_mejores_coincidencias
 from posts.helpers.create_post_fn import creador_de_mensajes
+from posts.helpers.upload_file import upload_file
 from django.utils import timezone
 # from botocore.exceptions import NoCredentialsError, PartialCredentialsError, S3UploadFailedError
 
@@ -527,45 +528,10 @@ class SurveyAnswersTemplateView(APIView):
         
 
 class FileUploadView(APIView):
-    parser_class = (FileUploadParser,)
-
     def post(self, request, *args, **kwargs):
         file_obj = request.data['file']
-
-
-        # Usa las variables de configuración de settings.py
-        aws_access_key_id = settings.AWS_ACCESS_KEY_ID
-        aws_secret_access_key = settings.AWS_SECRET_ACCESS_KEY
-        region_name = settings.AWS_S3_REGION_NAME
-        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-
-        # Nombre del archivo en S3 (puede ser el mismo nombre que el archivo original)
-        file_name = file_obj.name
-
         try:
-            file_name = default_storage.save(file_obj.name, ContentFile(file_obj.read()))
-            file_url = default_storage.url(file_name)
-            s3 = boto3.client('s3')
-
-            # Configura la conexión a S3
-            # s3 = boto3.client('s3',
-            #                   aws_access_key_id=aws_access_key_id,
-            #                   aws_secret_access_key=aws_secret_access_key,
-            #                   region_name=region_name)
-            
-            # s3.upload_file(
-            #     file_name,
-            #     bucket_name,
-            #     file_name,
-            #     ExtraArgs={'ACL': 'public-read'}
-            # )
-            
-            # Sube el archivo a S3
-            # s3.upload_fileobj(file_obj, bucket_name, file_name)
-
-            # Genera la URL del archivo en S3
-            # file_url = f'https://{bucket_name}.s3.amazonaws.com/{file_name}'
-
+            file_url = upload_file(file_obj)
             return Response({'file_url': file_url})
         except Exception as e:
-            return Response({'error': f'Error al subir el archivo a S3: {str(e)}'}, status=500)
+            return Response({'error': 'Error al subir el archivo a S3: ' + {str(e)}}, status=500)
