@@ -379,7 +379,7 @@ class MessageTemplateView(APIView):
             )
             new_message.save()  # Guarda el detalle del post en la base de datos
             
-            mensaje_predeterminado = 'Copie mejorado'
+            mensaje_predeterminado = 'Nuevo copy mejorado! en base a las indicaciones'
             
             with connection.cursor() as cursor:
                     cursor.execute(
@@ -402,10 +402,16 @@ class MessageTemplateView(APIView):
                         datos_posts_messages = [{'id': row[0],'content': row[1], 'role': row[2]} for row in data_posts_messages]
              
             with connection.cursor() as cursor:
-              cursor.execute(""" SELECT id,post_ocassion,post_promo,post_objective,post_language,post_use_emojis,post_keywords,post_creativity,post_copy_size,post_include_business_info,post_id,products_to_include,products_to_include_names FROM posts_postdetail pp WHERE pp.post_id = %s  """, [post_id])
+              cursor.execute(""" SELECT pp.id,pp.post_ocassion,pp.post_promo,pp.post_objective,pp.post_language,pp.post_use_emojis,pp.post_keywords,pp.post_creativity,
+                             pp.post_copy_size,pp.post_include_business_info,pp.post_id,pp.products_to_include,pp.products_to_include_names,
+                             b.name,b.target_audience,b.facebook_page,b.phone,b.website,b.mail,b.schedule,b.mission,b.vision,b.logo_carpet,	i.name industry_name
+                             FROM posts_postdetail pp join posts_posts ppp on ppp.id= pp.post_id
+                                 join businesses b on ppp.business_id = b.id join industries i on i.id=b.industry_id WHERE pp.post_id = %s  """, [post_id])
               data_post_detalle = cursor.fetchall()
-              datos_post_detalle = [{'id': row[0],'post_ocassion': row[1], 'post_promo': row[2], 'post_objective': row[3], 'post_language': row[4], 'post_use_emojis': row[5], 'post_keywords': row[6], 'post_creativity': row[7], 'post_copy_size': row[8], 'post_include_business_info': row[9], 'post_id': row[10], 'products_to_include': row[11], 'products_to_include_names':row[12]} for row in data_post_detalle] 
-             
+              datos_post_detalle = [{'id': row[0],'post_ocassion': row[1], 'post_promo': row[2], 'post_objective': row[3], 'post_language': row[4], 'post_use_emojis': row[5], 'post_keywords': row[6], 'post_creativity': row[7], 'post_copy_size': row[8], 'post_include_business_info': row[9], 'post_id': row[10], 'products_to_include': row[11], 'products_to_include_names':row[12],
+                             'name': row[13], 'target_audience': row[14], 'facebook_page': row[15], 'phone': row[16], 'website': row[17], 'mail': row[18], 'schedule': row[19], 'mission': row[20], 'vision': row[21], 'logo_carpet': row[22], 'industry_name': row[23]} for row in data_post_detalle]
+              
+              print('datos_post_detalle', datos_post_detalle)  
                         
             contenido_a_insertar = creador_de_mensajes(datos_posts_messages_choseen,datos_posts_messages,datos_post_detalle)
             
