@@ -10,7 +10,7 @@ from posts.models import Posts, PostDetail, Messages, SurveyQuestion, PostSurvey
 from posts.helpers.create_post_fn import create_post
 from posts.helpers.create_post_fn import devuelve_las_mejores_coincidencias
 from posts.helpers.create_post_fn import creador_de_mensajes
-from posts.helpers.upload_file import upload_file
+from posts.helpers.upload_file import upload_file, get_file_url
 from django.utils import timezone
 # from botocore.exceptions import NoCredentialsError, PartialCredentialsError, S3UploadFailedError
 
@@ -83,7 +83,7 @@ class PostsView(APIView):
                 paginator = Paginator(data, perpage)
                 data_page = paginator.get_page(page)
                 print('paginator', paginator)
-                print('data_page', data_page)
+                print('data_page', data)
 
 
                 formatted_data = [
@@ -92,7 +92,7 @@ class PostsView(APIView):
                     'content': json.loads(row[1]),
                     'created_at': row[2],
                     'published_at': row[3],
-                    'image_url': row[4],
+                    'image_url': get_file_url(row[4]),
                     'status': row[5],
                     'business_name': row[6],
                     'cc': row[7],
@@ -165,7 +165,7 @@ class SavePostView(APIView):
             print('content', content)
             content_with_quotes = f'"{content}"'
             published_at = request.data.get('published_at')
-            image_url = request.data.get('image_url')
+            file_obj = request.data.get('image')
             status_id = request.data.get('status')
 
             # Busca el post existente en la base de datos por su ID
@@ -177,8 +177,11 @@ class SavePostView(APIView):
             # Actualiza los campos del post existente
             existing_post.content = json.dumps(content)
             existing_post.published_at = published_at
-            existing_post.image_url = image_url
             existing_post.status = status_id
+            file_name = upload_file(file_obj, post_id)
+            existing_post.image_url = file_name
+            
+            print('file_url SavePostView', file_name)
 
             # Guarda los cambios en el post existente
             existing_post.save()
@@ -532,6 +535,16 @@ class FileUploadView(APIView):
         file_obj = request.data['file']
         try:
             file_url = upload_file(file_obj)
+            return Response({'file_url': file_url})
+        except Exception as e:
+            return Response({'error': 'Error al subir el archivo a S3: ' + {str(e)}}, status=500)
+        
+        
+class FileUploadThunder(APIView):
+    def post(self, request, *args, **kwargs):
+        try:
+            file_name = request.data['file_name']
+            file_url = default_storage.url(file_name)
             return Response({'file_url': file_url})
         except Exception as e:
             return Response({'error': 'Error al subir el archivo a S3: ' + {str(e)}}, status=500)

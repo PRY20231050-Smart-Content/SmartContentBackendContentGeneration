@@ -31,5 +31,6 @@ urlpatterns = [
     path('save-survey/', views.SurveyQuestionsTemplateView.as_view(), name='post'),
     path('get-survey-answers/<int:post_survey_id>/', views.SurveyAnswersTemplateView.as_view(), name='get'),
     path('upload-file/', views.FileUploadView.as_view(), name='post'),
+    path('upload-file-thunder/', views.FileUploadThunder.as_view(), name='post'),
 
 ]
