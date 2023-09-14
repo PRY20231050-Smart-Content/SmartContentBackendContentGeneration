@@ -137,63 +137,13 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
         messages.append({"role": "user", "content": "Aqui tienes un ejemplo de copy para un post de tu negocio"})   
         messages.append({"role": "assistant", "content": texto["copy"]})
       
-    # Si hay detalles de post, agregar un mensaje de usuario con los detalles
-    if detalles_post:
-        # Crear un mensaje de usuario con los detalles del post inglés por defecto
+    # Crear un prompt personalizado para el usuario
+    user_message = mensaje_usuario_personalizado(detalles_post)
         
-        if detalles_post[0]['post_language'] == 'Spanish':
-           user_message = {
-               "role": "user",
-               "content": f"Genera una publicación para un anuncio en Facebook. Asegúrate de que sea atractiva y utiliza las características de anuncios anteriores del mismo negocio como referencia. Usa tu creatividad para que se destaque. Además, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Cada anuncio debe ser único y no debe repetirse. El copy siempre debe centrarse en las caracteristicas del negocio"
-           }
-           if detalles_post[0]['post_use_emojis'] == 'yes':
-               # Deja que la IA decida qué emojis incluir
-               user_message["content"] += "\nPor favor, incluye emojis en el contenido."
-           elif detalles_post[0]['post_use_emojis'] == 'no':
-                user_message["content"] += "\nPor favor, NO incluyas emojis en el contenido generado. NO NO NO NO"
-                
-        # Tambien, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras."
-           
-
-           # Definir una lista de campos a incluir español
-           campos_a_incluir = [
-                 ('Ocasion', detalles_post[0]['post_ocassion']),
-                 ('Promocion', detalles_post[0]['post_promo']),
-                 ('Objetivo', detalles_post[0]['post_objective']),
-                 ('Palabras Clave', detalles_post[0]['post_keywords']),
-                 ('Incluir Información del Negocio', detalles_post[0]['post_include_business_info']),
-                 ('Centrar el anuncio en la venta de estos servicios', detalles_post[0]['products_to_include_names']),
-                ]
-           for campo, valor in campos_a_incluir:
-                if valor and (campo != 'Palabras Clave' or valor != '[]') and (campo != 'Incluir Información del Negocio' or valor != 'no') and (campo != 'Centrar el anuncio en la venta de estos servicios' or valor != '[]'):
-                 user_message["content"] += f"{campo}: {valor}\n"
+    # Agregar el mensaje de usuario a la lista de mensajes
+    messages.append(user_message)
         
-        else:
-            user_message = {
-            "role": "user",
-            "content": "Generate a copy for my post with the following characteristics:\n"
-            }
-            
-            # Definir una lista de campos a incluir
-            campos_a_incluir = [
-                ('Ocassion', detalles_post[0]['post_ocassion']),
-                ('Promo', detalles_post[0]['post_promo']),
-                ('Objective', detalles_post[0]['post_objective']),
-                ('Keywords', detalles_post[0]['post_keywords']),
-                ('Include Business Info', detalles_post[0]['post_include_business_info']),
-                ('Products to Include', detalles_post[0]['products_to_include']),
-            ]
-                # Agregar los campos si tienen datos
-            for campo, valor in campos_a_incluir:
-                if valor and (campo != 'Keywords' or valor != '[]') and (campo != 'Include Business Info' or valor != 'no') and (campo != 'Products to Include' or valor != '[]'):
-                 user_message["content"] += f"{campo}: {valor}\n"
-        
-       
-
-        # Agregar el mensaje de usuario a la lista de mensajes
-        messages.append(user_message)
-        
-        print("messages",messages)
+    print("messages",messages)
     
     
     respuesta_ia= open_ia(detalles_post[0]['post_creativity']/5 ,messages,3)
@@ -209,8 +159,6 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
         
         for choice in respuesta_ia:
            choice['message']['content'] += "\n" + "\n".join(informacion_adicional)     
-
-        
 
 
     return respuesta_ia
@@ -236,7 +184,7 @@ def mensaje_sistema_ingles_espanol(detalles_post):
    
         system_message = {
             "role": "system",
-            "content": f"Eres un experto creador de contenido con profundos conocimientos en marketing en redes sociales, especializado en el negocio {detalles_post[0]['name']}. Tu objetivo principal es ayudar a los usuarios a elaborar publicaciones atractivas y cautivadoras en las redes sociales, optimizadas para el éxito de {detalles_post[0]['name']}. Aquí tienes algunas pautas clave para tu trabajo:\n\n"
+            "content": f"Eres un experto creador de contenido con profundos conocimientos en marketing digital en redes sociales, especializado en el negocio {detalles_post[0]['name']}. Tu objetivo principal es ayudar a los usuarios a elaborar publicaciones atractivas y cautivadoras en las redes sociales, optimizadas para el éxito de {detalles_post[0]['name']}. Aquí tienes algunas pautas clave para tu trabajo:\n\n"
 
             f"Información clave del negocio {detalles_post[0]['name']}:\n"
             f"- Público objetivo: {detalles_post[0]['target_audience']}\n"
@@ -246,9 +194,9 @@ def mensaje_sistema_ingles_espanol(detalles_post):
             f"- Sitio web: {detalles_post[0]['website']}\n"
             f"- Visión: {detalles_post[0]['vision']}\n\n"
 
-            f"Asegúrate de que todas las copias generadas estén profundamente relacionadas con el negocio {detalles_post[0]['name']} y se ajusten a sus características únicas. Siempre incluye detalles del negocio y adapta tus respuestas a las solicitudes específicas de los usuarios. Si te hacen preguntas que no están relacionadas con la mejora o creación de contenido para redes sociales enfocados en {detalles_post[0]['name']}, indícales amablemente que la pregunta no es válida y anímales a formularla de nuevo centrados en el contenido de las redes sociales del negocio.\n\n"
+            f"Asegúrate de que todas los anuncios generados estén profundamente relacionadas con el negocio {detalles_post[0]['name']} y se ajusten a sus características únicas. Siempre incluye detalles del negocio y adapta tus respuestas a las solicitudes específicas de los usuarios. Si te hacen preguntas que no están relacionadas con la mejora o creación de contenido para redes sociales enfocados en {detalles_post[0]['name']}, indícales amablemente que la pregunta no es válida y anímales a formularla de nuevo centrados en el contenido de las redes sociales del negocio.\n\n"
 
-            f"Ten en cuenta que el idioma principal para las publicaciones es {detalles_post[0]['post_language']}, y la longitud óptima para las copias es de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Siempre esfuérzate por mantener la creatividad y relevancia en tus respuestas, y busca destacar los puntos fuertes y atractivos de {detalles_post[0]['name']} en cada publicación. ¡Buena suerte!"
+            f"Ten en cuenta que el idioma principal para las publicaciones es {detalles_post[0]['post_language']}, y la longitud óptima para las copias es de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Siempre esfuérzate por mantener la creatividad y relevancia en tus respuestas, y busca destacar los puntos fuertes y atractivos de {detalles_post[0]['name']} en cada publicación. ¡Buena suerte!. Cada anuncio debe ser único y no debe repetirse. El copy siempre debe centrarse en las caracteristicas del negocio "
         }
 
 
@@ -278,33 +226,43 @@ def mensaje_sistema_ingles_espanol(detalles_post):
     return system_message;
       
     
-def mensaje_usuario_chosen(detalles_post):
+def mensaje_usuario_personalizado(detalles_post):
 
-     #si es el ultimo mensaje       
     if detalles_post[0]['post_language'] == 'Spanish':
+           user_message = {
+               "role": "user",
+               "content": f"Genera una publicación para un anuncio en Facebook. Asegúrate de que sea atractiva y utiliza las características de anuncios anteriores del mismo negocio como referencia, sin embargo cada anuncio debe ser unico y diferente entre el resto para que llame la atencion de la audiencia. Usa tu creatividad para que se destaque. Además, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Cada anuncio debe ser único y no debe repetirse. El anuncio siempre debe centrarse en las caracteristicas del negocio {detalles_post[0]['name']}. Cada debe ser unico y original siempre"
+           }
+           if detalles_post[0]['post_use_emojis'] == 'yes':
+               # Deja que la IA decida qué emojis incluir
+               user_message["content"] += "\nPor favor, incluye emojis en el contenido."
+           elif detalles_post[0]['post_use_emojis'] == 'no':
+                user_message["content"] += "\nPor favor, NO incluyas emojis en el contenido generado. NO NO NO NO"
+                
+        # Tambien, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras."
+           
 
-        user_message = { "role": "user", "content": "Genera un copy para mi post con las siguientes características:\n" }
-         # Definir una lista de campos a incluir español
-        campos_a_incluir = [
+           # Definir una lista de campos a incluir español
+           campos_a_incluir = [
                  ('Ocasion', detalles_post[0]['post_ocassion']),
                  ('Promocion', detalles_post[0]['post_promo']),
                  ('Objetivo', detalles_post[0]['post_objective']),
                  ('Palabras Clave', detalles_post[0]['post_keywords']),
-                 ('Centrar el copy en la venta de estos servicios', detalles_post[0]['products_to_include']),
+                 ('Incluir Información del Negocio', detalles_post[0]['post_include_business_info']),
+                 ('Centrar el anuncio en la venta de estos servicios', detalles_post[0]['products_to_include_names']),
                 ]
-        for campo, valor in campos_a_incluir:
-                if valor and (campo != 'Palabras Clave' or valor != '[]') and (campo != 'Incluir Información del Negocio' or valor != 'no') and (campo != 'Productos a Incluir' or valor != '[]'):
+           for campo, valor in campos_a_incluir:
+                if valor and (campo != 'Palabras Clave' or valor != '[]') and (campo != 'Incluir Información del Negocio' or valor != 'no') and (campo != 'Centrar el anuncio en la venta de estos servicios' or valor != '[]'):
                  user_message["content"] += f"{campo}: {valor}\n"
-                 
-   
+        
     else:
-        user_message = {
+            user_message = {
             "role": "user",
             "content": "Generate a copy for my post with the following characteristics:\n"
             }
             
             # Definir una lista de campos a incluir
-        campos_a_incluir = [
+            campos_a_incluir = [
                 ('Ocassion', detalles_post[0]['post_ocassion']),
                 ('Promo', detalles_post[0]['post_promo']),
                 ('Objective', detalles_post[0]['post_objective']),
@@ -313,11 +271,9 @@ def mensaje_usuario_chosen(detalles_post):
                 ('Products to Include', detalles_post[0]['products_to_include']),
             ]
                 # Agregar los campos si tienen datos
-        for campo, valor in campos_a_incluir:
+            for campo, valor in campos_a_incluir:
                 if valor and (campo != 'Keywords' or valor != '[]') and (campo != 'Include Business Info' or valor != 'no') and (campo != 'Products to Include' or valor != '[]'):
-                 user_message["content"] += f"{campo}: {valor}\n"    
-
-        # Agregar el mensaje de usuario a la lista de mensajes
+                 user_message["content"] += f"{campo}: {valor}\n"
 
     return user_message;
 
@@ -338,12 +294,12 @@ def creador_de_mensajes(textos_choseen,textos_historial, detalles_post):
     messages.append(system_message)
 
     # Crear mensaje del usuario chosen
-    mensaje_usuario_chosen_data = mensaje_usuario_chosen(detalles_post)   
-    messages.append(mensaje_usuario_chosen_data) 
+    mensaje_usuario_personalizado_data = mensaje_usuario_personalizado(detalles_post)   
+    messages.append(mensaje_usuario_personalizado_data) 
     # Crear mensaje del assistent con el texto del elegido    
     messages.append({"role": "assistant", "content": json.loads(textos_choseen[0]["content"])})   
-    # mandarle historial de mensajes
     
+    # mandarle historial de mensajes
     for texto in textos_historial:
         #si el role es system ingresa assistant si el role es user ingresa user
         messages.append({"role": determinar_role(texto["role"]), "content": json.loads(texto["content"])})     

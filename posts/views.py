@@ -10,7 +10,6 @@ from posts.models import Posts, PostDetail, Messages, SurveyQuestion, PostSurvey
 from posts.helpers.create_post_fn import create_post
 from posts.helpers.create_post_fn import devuelve_las_mejores_coincidencias
 from posts.helpers.create_post_fn import creador_de_mensajes
-from posts.helpers.upload_file import upload_file, get_file_url
 from django.utils import timezone
 # from botocore.exceptions import NoCredentialsError, PartialCredentialsError, S3UploadFailedError
 
@@ -83,7 +82,7 @@ class PostsView(APIView):
                 paginator = Paginator(data, perpage)
                 data_page = paginator.get_page(page)
                 print('paginator', paginator)
-                print('data_page', data)
+                print('data_page', data_page)
 
 
                 formatted_data = [
@@ -92,7 +91,7 @@ class PostsView(APIView):
                     'content': json.loads(row[1]),
                     'created_at': row[2],
                     'published_at': row[3],
-                    'image_url': get_file_url(row[4]),
+                    'image_url': row[4],
                     'status': row[5],
                     'business_name': row[6],
                     'cc': row[7],
@@ -165,7 +164,7 @@ class SavePostView(APIView):
             print('content', content)
             content_with_quotes = f'"{content}"'
             published_at = request.data.get('published_at')
-            file_obj = request.data.get('image')
+            image_url = request.data.get('image_url')
             status_id = request.data.get('status')
 
             # Busca el post existente en la base de datos por su ID
@@ -177,11 +176,8 @@ class SavePostView(APIView):
             # Actualiza los campos del post existente
             existing_post.content = json.dumps(content)
             existing_post.published_at = published_at
+            existing_post.image_url = image_url
             existing_post.status = status_id
-            file_name = upload_file(file_obj, post_id)
-            existing_post.image_url = file_name
-            
-            print('file_url SavePostView', file_name)
 
             # Guarda los cambios en el post existente
             existing_post.save()
@@ -537,20 +533,45 @@ class SurveyAnswersTemplateView(APIView):
         
 
 class FileUploadView(APIView):
+    parser_class = (FileUploadParser,)
+
     def post(self, request, *args, **kwargs):
         file_obj = request.data['file']
+
+
+        # Usa las variables de configuración de settings.py
+        aws_access_key_id = settings.AWS_ACCESS_KEY_ID
+        aws_secret_access_key = settings.AWS_SECRET_ACCESS_KEY
+        region_name = settings.AWS_S3_REGION_NAME
+        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+
+        # Nombre del archivo en S3 (puede ser el mismo nombre que el archivo original)
+        file_name = file_obj.name
+
         try:
-            file_url = upload_file(file_obj)
-            return Response({'file_url': file_url})
-        except Exception as e:
-            return Response({'error': 'Error al subir el archivo a S3: ' + {str(e)}}, status=500)
-        
-        
-class FileUploadThunder(APIView):
-    def post(self, request, *args, **kwargs):
-        try:
-            file_name = request.data['file_name']
+            file_name = default_storage.save(file_obj.name, ContentFile(file_obj.read()))
             file_url = default_storage.url(file_name)
+            s3 = boto3.client('s3')
+
+            # Configura la conexión a S3
+            # s3 = boto3.client('s3',
+            #                   aws_access_key_id=aws_access_key_id,
+            #                   aws_secret_access_key=aws_secret_access_key,
+            #                   region_name=region_name)
+            
+            # s3.upload_file(
+            #     file_name,
+            #     bucket_name,
+            #     file_name,
+            #     ExtraArgs={'ACL': 'public-read'}
+            # )
+            
+            # Sube el archivo a S3
+            # s3.upload_fileobj(file_obj, bucket_name, file_name)
+
+            # Genera la URL del archivo en S3
+            # file_url = f'https://{bucket_name}.s3.amazonaws.com/{file_name}'
+
             return Response({'file_url': file_url})
         except Exception as e:
-            return Response({'error': 'Error al subir el archivo a S3: ' + {str(e)}}, status=500)
+            return Response({'error': f'Error al subir el archivo a S3: {str(e)}'}, status=500)
