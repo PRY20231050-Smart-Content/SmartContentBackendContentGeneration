@@ -256,24 +256,29 @@ def mensaje_usuario_personalizado(detalles_post):
                  user_message["content"] += f"{campo}: {valor}\n"
         
     else:
-            user_message = {
+        user_message = {
             "role": "user",
-            "content": "Generate a copy for my post with the following characteristics:\n"
-            }
-            
-            # Definir una lista de campos a incluir
-            campos_a_incluir = [
-                ('Ocassion', detalles_post[0]['post_ocassion']),
-                ('Promo', detalles_post[0]['post_promo']),
-                ('Objective', detalles_post[0]['post_objective']),
-                ('Keywords', detalles_post[0]['post_keywords']),
-                ('Include Business Info', detalles_post[0]['post_include_business_info']),
-                ('Products to Include', detalles_post[0]['products_to_include']),
-            ]
-                # Agregar los campos si tienen datos
-            for campo, valor in campos_a_incluir:
-                if valor and (campo != 'Keywords' or valor != '[]') and (campo != 'Include Business Info' or valor != 'no') and (campo != 'Products to Include' or valor != '[]'):
-                 user_message["content"] += f"{campo}: {valor}\n"
+            "content": f"Generate a Facebook ad post. Ensure that it is engaging and uses previous ad features of the same business as a reference; however, each ad must be unique and different from the rest to grab the audience's attention. Use your creativity to make it stand out. Additionally, please note that the generated text should be in {detalles_post[0]['post_language']} and consist of {cantidad_palabras(detalles_post[0]['post_copy_size'])} words. Each ad must be unique and should not be repeated. The ad should always focus on the business's features of {detalles_post[0]['name']}. Each must be unique and original every time."
+        }
+        if detalles_post[0]['post_use_emojis'] == 'yes':
+            # Let the AI decide which emojis to include
+            user_message["content"] += "\nPlease include emojis in the content."
+        elif detalles_post[0]['post_use_emojis'] == 'no':
+            user_message["content"] += "\nPlease, DO NOT include emojis in the generated content."
+
+        # Define a list of fields to include in English
+        fields_to_include = [
+            ('Occasion', detalles_post[0]['post_ocassion']),
+            ('Promotion', detalles_post[0]['post_promo']),
+            ('Objective', detalles_post[0]['post_objective']),
+            ('Keywords', detalles_post[0]['post_keywords']),
+            ('Include Business Info', detalles_post[0]['post_include_business_info']),
+            ('Focus the ad on selling these services', detalles_post[0]['products_to_include_names']),
+        ]
+        for field, value in fields_to_include:
+            if value and (field != 'Keywords' or value != '[]') and (field != 'Include Business Info' or value != 'no') and (field != 'Focus the ad on selling these services' or value != '[]'):
+                user_message["content"] += f"{field}: {value}\n"
+
 
     return user_message;
 
