@@ -178,11 +178,11 @@ class SavePostView(APIView):
             existing_post.content = json.dumps(content)
             existing_post.published_at = published_at
             existing_post.status = status_id
-            file_name = upload_file(file_obj, post_id)
-            existing_post.image_url = file_name
             
-            print('file_url SavePostView', file_name)
-
+            if file_obj is not None:
+                file_name = upload_file(file_obj)
+                existing_post.image_url = file_name
+            
             # Guarda los cambios en el post existente
             existing_post.save()
 
@@ -190,6 +190,7 @@ class SavePostView(APIView):
 
         except Exception as e:
             # You can log the exception here for debugging purposes
+            print('str(e) ', str(e))
             return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class PostChatView(APIView):
