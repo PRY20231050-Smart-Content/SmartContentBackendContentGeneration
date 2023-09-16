@@ -113,10 +113,8 @@ def cantidad_palabras(texto):
 
 def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
     
-    print("detalles_post",detalles_post)
     
     textos_coincidentes = encontrar_coincidencias_con_sinonimos(textos, detalles_post[0]['post_keywords'])
-    print("textos_coincidentes",textos_coincidentes)
 
     # Ordenar la lista de textos por puntaje en orden descendente
     textos_coincidentes.sort(
@@ -127,51 +125,123 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
     mejores_textos = textos_coincidentes[:size]
         
     messages = []
-        # Determinar el idioma del mensaje de sistema
-    if detalles_post[0]['post_language'] == 'Spanish':
-        # Crear un mensaje de sistema en español
-        system_message = {
-            "role": "system",
-            "content": f"Eres un creador de contenido hábil con un profundo conocimiento en marketing en redes sociales del negocio {detalles_post[0]['name']}. Tu objetivo es ayudar a los usuarios a elaborar publicaciones atractivas y cautivadoras en las redes sociales. Por favor, asegúrate de que tus respuestas sean creativas, relevantes y adaptadas a la solicitud del usuario. Si te hacen preguntas que no están relacionadas con la mejora o creación de contenido para redes sociales, indícales que esa pregunta no es válida y pídeles que lo intenten nuevamente centrados en el contenido de las redes sociales. Además, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras."
-
-        "Información adicional del negocio:"
-        f"- Público objetivo: {detalles_post[0]['target_audience']}"
-        f"- Misión: {detalles_post[0]['mission']}"
-        f"- Industria: {detalles_post[0]['industry_name']}"
-        f"- Página de Facebook: {detalles_post[0]['facebook_page']}"
-        f"- Sitio web: {detalles_post[0]['website']}"
-        f"- Visión: {detalles_post[0]['vision']}"
-
-        " Para obtener más detalles sobre el negocio y sus servicios, visita la página de Facebook o el sitio web mencionados anteriormente."
-        }
-   
-
-
-
-    else:
-        # Crear un mensaje de sistema en inglés por defecto
-        system_message = {
-            "role": "system",
-            "content": f"You are a skilled content creator with deep knowledge in social media marketing. Your goal is to assist users in crafting engaging and captivating social media posts. Please ensure that your responses are creative, relevant, and tailored to the user's request. If they ask questions unrelated to improving or creating content for social media, kindly inform them that the question is not valid and request them to try again with a focus on social media content. Additionally, please note that the generated text should be in the {detalles_post[0]['post_language']} language and consist of {cantidad_palabras(detalles_post[0]['post_copy_size'])} words."
-        }  
-    
+  
+    # Crear un mensaje de sistema
+    system_message=mensaje_sistema_ingles_espanol(detalles_post)
     messages.append(system_message)
 
     
+    # Crear un few shot learning de copys del negocio.
     for texto in mejores_textos:
         #si es el ultimo mensaje
         messages.append({"role": "user", "content": "Aqui tienes un ejemplo de copy para un post de tu negocio"})   
         messages.append({"role": "assistant", "content": texto["copy"]})
       
-        # Crear un mensaje de usuario con los detalles del post si tienen datos
-    # Si hay detalles de post, agregar un mensaje de usuario con los detalles
-    if detalles_post:
-        # Crear un mensaje de usuario con los detalles del post inglés por defecto
+    # Crear un prompt personalizado para el usuario
+    user_message = mensaje_usuario_personalizado(detalles_post)
+        
+    # Agregar el mensaje de usuario a la lista de mensajes
+    messages.append(user_message)
+        
+    print("messages",messages)
+    
+    
+    respuesta_ia= open_ia(detalles_post[0]['post_creativity']/5 ,messages,3)
+    
+    if detalles_post[0]['post_include_business_info'] == 'yes':
         
         if detalles_post[0]['post_language'] == 'Spanish':
+            # Concatenar la información adicional
+            informacion_adicional = [
+                f"📲 Teléfono: {detalles_post[0]['phone']}",
+                f"🌐 Sitio web: {detalles_post[0]['website']}",
+                f"📧 Correo electrónico: {detalles_post[0]['mail']}",
+                f"⏰ Horario: {detalles_post[0]['schedule']}",
+            ]
+        else:
+            # Concatenate the additional information
+            informacion_adicional = [
+                f"📲 Phone: {detalles_post[0]['phone']}",
+                f"🌐 Website: {detalles_post[0]['website']}",
+                f"📧 Email: {detalles_post[0]['mail']}",
+                f"⏰ Schedule: {detalles_post[0]['schedule']}",
+            ]
+            
+        for choice in respuesta_ia:
+            choice['message']['content'] += "\n" + "\n".join(informacion_adicional)     
+
+
+    return respuesta_ia
+
+
+def open_ia(temperature, messages,tamano_respuesta):
+    
+#  URL de la API de OpenAI
+    openai.api_key = "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"
+
+    completion = openai.ChatCompletion.create(
+    model="gpt-3.5-turbo",
+    messages=messages,n=tamano_respuesta,max_tokens=150,temperature=temperature)
+       
+    return completion.choices
+
+
+def mensaje_sistema_ingles_espanol(detalles_post):
+
+    # Determinar el idioma del mensaje de sistema
+    if detalles_post[0]['post_language'] == 'Spanish':
+    
+   
+        system_message = {
+            "role": "system",
+            "content": f"Eres un experto creador de contenido con profundos conocimientos en marketing digital en redes sociales, especializado en el negocio {detalles_post[0]['name']}. Tu objetivo principal es ayudar a los usuarios a elaborar publicaciones atractivas y cautivadoras en las redes sociales, optimizadas para el éxito de {detalles_post[0]['name']}. Aquí tienes algunas pautas clave para tu trabajo:\n\n"
+
+            f"Información clave del negocio {detalles_post[0]['name']}:\n"
+            f"- Público objetivo: {detalles_post[0]['target_audience']}\n"
+            f"- Misión: {detalles_post[0]['mission']}\n"
+            f"- Industria: {detalles_post[0]['industry_name']}\n"
+            f"- Página de Facebook: {detalles_post[0]['facebook_page']}\n"
+            f"- Sitio web: {detalles_post[0]['website']}\n"
+            f"- Visión: {detalles_post[0]['vision']}\n\n"
+
+            f"Asegúrate de que todas los anuncios generados estén profundamente relacionadas con el negocio {detalles_post[0]['name']} y se ajusten a sus características únicas. Siempre incluye detalles del negocio y adapta tus respuestas a las solicitudes específicas de los usuarios. Si te hacen preguntas que no están relacionadas con la mejora o creación de contenido para redes sociales enfocados en {detalles_post[0]['name']}, indícales amablemente que la pregunta no es válida y anímales a formularla de nuevo centrados en el contenido de las redes sociales del negocio.\n\n"
+
+            f"Ten en cuenta que el idioma principal para las publicaciones es {detalles_post[0]['post_language']}, y la longitud óptima para las copias es de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Siempre esfuérzate por mantener la creatividad y relevancia en tus respuestas, y busca destacar los puntos fuertes y atractivos de {detalles_post[0]['name']} en cada publicación. ¡Buena suerte!. Cada anuncio debe ser único y no debe repetirse. El copy siempre debe centrarse en las caracteristicas del negocio "
+        }
+
+
+    else:
+        # Crear un mensaje de sistema en inglés por defecto
+        # Create a system message in English
+        system_message = {
+            "role": "system",
+            "content": f"You are an expert content creator with deep knowledge in social media marketing, specializing in the business {detalles_post[0]['name']}. Your main objective is to assist users in crafting engaging and captivating social media posts, optimized for the success of {detalles_post[0]['name']}. Here are some key guidelines for your work:\n\n"
+
+            f"Key business information for {detalles_post[0]['name']}:\n"
+            f"- Target Audience: {detalles_post[0]['target_audience']}\n"
+            f"- Mission: {detalles_post[0]['mission']}\n"
+            f"- Industry: {detalles_post[0]['industry_name']}\n"
+            f"- Facebook Page: {detalles_post[0]['facebook_page']}\n"
+            f"- Website: {detalles_post[0]['website']}\n"
+            f"- Vision: {detalles_post[0]['vision']}\n\n"
+
+            f"Ensure that all generated copies are deeply related to the business {detalles_post[0]['name']} and tailored to its unique characteristics. Always include business details and adapt your responses to specific user requests. If you receive questions unrelated to improving or creating content for {detalles_post[0]['name']}'s social media, kindly inform them that the question is not valid and encourage them to rephrase it with a focus on the content of the business's social media.\n\n"
+
+            f"Keep in mind that the primary language for posts is {detalles_post[0]['post_language']}, and the optimal copy length is {cantidad_palabras(detalles_post[0]['post_copy_size'])} words. Always strive to maintain creativity and relevance in your responses, and aim to highlight the strengths and attractions of {detalles_post[0]['name']} in each post. Good luck!"
+        }
+  
+        
+        
+        
+    return system_message;
+      
+    
+def mensaje_usuario_personalizado(detalles_post):
+
+    if detalles_post[0]['post_language'] == 'Spanish':
            user_message = {
                "role": "user",
-               "content": f"Genera una publicación para un anuncio en Facebook. Asegúrate de que sea atractiva y utiliza las características de anuncios anteriores del mismo negocio como referencia. Usa tu creatividad para que se destaque. Además, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Cada anuncio debe ser único y no debe repetirse."
+               "content": f"Genera una publicación para un anuncio en Facebook. Asegúrate de que sea atractiva y utiliza las características de anuncios anteriores del mismo negocio como referencia, sin embargo cada anuncio debe ser unico y diferente entre el resto para que llame la atencion de la audiencia. Usa tu creatividad para que se destaque. Además, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Cada anuncio debe ser único y no debe repetirse. El anuncio siempre debe centrarse en las caracteristicas del negocio {detalles_post[0]['name']}. Cada debe ser unico y original siempre"
            }
            if detalles_post[0]['post_use_emojis'] == 'yes':
                # Deja que la IA decida qué emojis incluir
@@ -195,123 +265,30 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
                 if valor and (campo != 'Palabras Clave' or valor != '[]') and (campo != 'Incluir Información del Negocio' or valor != 'no') and (campo != 'Centrar el anuncio en la venta de estos servicios' or valor != '[]'):
                  user_message["content"] += f"{campo}: {valor}\n"
         
-        else:
-            user_message = {
-            "role": "user",
-            "content": "Generate a copy for my post with the following characteristics:\n"
-            }
-            
-            # Definir una lista de campos a incluir
-            campos_a_incluir = [
-                ('Ocassion', detalles_post[0]['post_ocassion']),
-                ('Promo', detalles_post[0]['post_promo']),
-                ('Objective', detalles_post[0]['post_objective']),
-                ('Keywords', detalles_post[0]['post_keywords']),
-                ('Include Business Info', detalles_post[0]['post_include_business_info']),
-                ('Products to Include', detalles_post[0]['products_to_include']),
-            ]
-                # Agregar los campos si tienen datos
-            for campo, valor in campos_a_incluir:
-                if valor and (campo != 'Keywords' or valor != '[]') and (campo != 'Include Business Info' or valor != 'no') and (campo != 'Products to Include' or valor != '[]'):
-                 user_message["content"] += f"{campo}: {valor}\n"
-        
-       
-
-        # Agregar el mensaje de usuario a la lista de mensajes
-        messages.append(user_message)
-        
-        print("messages",messages)
-    
-    
-    respuesta_ia= open_ia(detalles_post[0]['post_creativity']/5 ,messages,3)
-    
-    if detalles_post[0]['post_include_business_info'] == 'yes':
-        # Concatenar la información adicional
-        informacion_adicional = [
-            f"📲 Teléfono: {detalles_post[0]['phone']}",
-            f"🌐 Sitio web: {detalles_post[0]['website']}",
-            f"📧 Correo electrónico: {detalles_post[0]['mail']}",
-            f"⏰ Horario: {detalles_post[0]['schedule']}",
-        ]
-        
-        for choice in respuesta_ia:
-           choice['message']['content'] += "\n" + "\n".join(informacion_adicional)     
-
-        
-
-
-    return respuesta_ia
-
-
-def open_ia(temperature, messages,tamano_respuesta):
-    
-#  URL de la API de OpenAI
-    openai.api_key = "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"
-
-    completion = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=messages,n=tamano_respuesta,max_tokens=150,temperature=temperature)
-       
-    return completion.choices
-
-
-def mensaje_sistema(detalles_post):
-         # Determinar el idioma del mensaje de sistema
-    if detalles_post[0]['post_language'] == 'Spanish':
-        # Crear un mensaje de sistema en español
-        system_message = {
-            "role": "system",
-            "content": f"Eres un creador de contenido experto en publicaciones para facebook en el idioma {detalles_post[0]['post_language']} de máximo {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Con la siguientes caracteristicas:"
-        }
-    else:
-        # Crear un mensaje de sistema en inglés por defecto
-        system_message = {
-            "role": "system",
-            "content": f"You are an expert content creator for facebook in the language {detalles_post[0]['post_language']} with a maximum of {cantidad_palabras(detalles_post[0]['post_copy_size'])} words. With the following characteristics:"
-        }
-    return system_message;
-        # Agregar el mensaje de sistema a la lista de mensajes
-    
-def mensaje_usuario_chosen(detalles_post):
-
-     #si es el ultimo mensaje       
-    if detalles_post[0]['post_language'] == 'Spanish':
-
-        user_message = { "role": "user", "content": "Genera un copy para mi post con las siguientes características:\n" }
-         # Definir una lista de campos a incluir español
-        campos_a_incluir = [
-                 ('Ocasion', detalles_post[0]['post_ocassion']),
-                 ('Promocion', detalles_post[0]['post_promo']),
-                 ('Objetivo', detalles_post[0]['post_objective']),
-                 ('Palabras Clave', detalles_post[0]['post_keywords']),
-                 ('Centrar el copy en la venta de estos servicios', detalles_post[0]['products_to_include']),
-                ]
-        for campo, valor in campos_a_incluir:
-                if valor and (campo != 'Palabras Clave' or valor != '[]') and (campo != 'Incluir Información del Negocio' or valor != 'no') and (campo != 'Productos a Incluir' or valor != '[]'):
-                 user_message["content"] += f"{campo}: {valor}\n"
-                 
-   
     else:
         user_message = {
             "role": "user",
-            "content": "Generate a copy for my post with the following characteristics:\n"
-            }
-            
-            # Definir una lista de campos a incluir
-        campos_a_incluir = [
-                ('Ocassion', detalles_post[0]['post_ocassion']),
-                ('Promo', detalles_post[0]['post_promo']),
-                ('Objective', detalles_post[0]['post_objective']),
-                ('Keywords', detalles_post[0]['post_keywords']),
-                ('Include Business Info', detalles_post[0]['post_include_business_info']),
-                ('Products to Include', detalles_post[0]['products_to_include']),
-            ]
-                # Agregar los campos si tienen datos
-        for campo, valor in campos_a_incluir:
-                if valor and (campo != 'Keywords' or valor != '[]') and (campo != 'Include Business Info' or valor != 'no') and (campo != 'Products to Include' or valor != '[]'):
-                 user_message["content"] += f"{campo}: {valor}\n"    
+            "content": f"Generate a Facebook ad post. Ensure that it is engaging and uses previous ad features of the same business as a reference; however, each ad must be unique and different from the rest to grab the audience's attention. Use your creativity to make it stand out. Additionally, please note that the generated text should be in {detalles_post[0]['post_language']} and consist of {cantidad_palabras(detalles_post[0]['post_copy_size'])} words. Each ad must be unique and should not be repeated. The ad should always focus on the business's features of {detalles_post[0]['name']}. Each must be unique and original every time."
+        }
+        if detalles_post[0]['post_use_emojis'] == 'yes':
+            # Let the AI decide which emojis to include
+            user_message["content"] += "\nPlease include emojis in the content."
+        elif detalles_post[0]['post_use_emojis'] == 'no':
+            user_message["content"] += "\nPlease, DO NOT include emojis in the generated content."
 
-        # Agregar el mensaje de usuario a la lista de mensajes
+        # Define a list of fields to include in English
+        fields_to_include = [
+            ('Occasion', detalles_post[0]['post_ocassion']),
+            ('Promotion', detalles_post[0]['post_promo']),
+            ('Objective', detalles_post[0]['post_objective']),
+            ('Keywords', detalles_post[0]['post_keywords']),
+            ('Include Business Info', detalles_post[0]['post_include_business_info']),
+            ('Focus the ad on selling these services', detalles_post[0]['products_to_include_names']),
+        ]
+        for field, value in fields_to_include:
+            if value and (field != 'Keywords' or value != '[]') and (field != 'Include Business Info' or value != 'no') and (field != 'Focus the ad on selling these services' or value != '[]'):
+                user_message["content"] += f"{field}: {value}\n"
+
 
     return user_message;
 
@@ -326,21 +303,22 @@ def determinar_role(role):
 def creador_de_mensajes(textos_choseen,textos_historial, detalles_post):
     
     messages = []
-    # Crear mensaje del sistema
-    system_message = mensaje_sistema(detalles_post)
-    messages.append(system_message)       
-    #Crear mensaje usuario del elegido
-    mensaje_usuario_chosen_data = mensaje_usuario_chosen(detalles_post)   
-    messages.append(mensaje_usuario_chosen_data) 
-    # Crear mensaje del assitent con el texto del elegido    
-    messages.append({"role": "assistant", "content": json.loads(textos_choseen[0]["content"])})   
-    # mandarle historial de mensajes
     
+    # Crear  mensaje de sistema
+    system_message=mensaje_sistema_ingles_espanol(detalles_post)
+    messages.append(system_message)
+
+    # Crear mensaje del usuario chosen
+    mensaje_usuario_personalizado_data = mensaje_usuario_personalizado(detalles_post)   
+    messages.append(mensaje_usuario_personalizado_data) 
+    # Crear mensaje del assistent con el texto del elegido    
+    messages.append({"role": "assistant", "content": json.loads(textos_choseen[0]["content"])})   
+    
+    # mandarle historial de mensajes
     for texto in textos_historial:
         #si el role es system ingresa assistant si el role es user ingresa user
         messages.append({"role": determinar_role(texto["role"]), "content": json.loads(texto["content"])})     
 
-    print("messages",messages)
     data_contenido = open_ia(detalles_post[0]['post_creativity']/5, messages,1)
     
     return data_contenido;
