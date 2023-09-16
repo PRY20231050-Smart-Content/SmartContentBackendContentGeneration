@@ -23,6 +23,7 @@ def get_file_url(file_name):
         file_url = default_storage.url(file_name)
         return file_url
     except Exception as e:
+        print('get_file_url', str(e))
         return {str(e)}
     
 def generate_uuid():
