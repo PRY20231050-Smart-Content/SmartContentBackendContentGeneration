@@ -153,6 +153,7 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
         if detalles_post[0]['post_language'] == 'Spanish':
             # Concatenar la información adicional
             informacion_adicional = [
+                f"\n",
                 f"📲 Teléfono: {detalles_post[0]['phone']}",
                 f"🌐 Sitio web: {detalles_post[0]['website']}",
                 f"📧 Correo electrónico: {detalles_post[0]['mail']}",
@@ -161,6 +162,7 @@ def devuelve_las_mejores_coincidencias(textos, detalles_post,size,return_size):
         else:
             # Concatenate the additional information
             informacion_adicional = [
+                f"\n",
                 f"📲 Phone: {detalles_post[0]['phone']}",
                 f"🌐 Website: {detalles_post[0]['website']}",
                 f"📧 Email: {detalles_post[0]['mail']}",
@@ -181,7 +183,7 @@ def open_ia(temperature, messages,tamano_respuesta):
 
     completion = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
-    messages=messages,n=tamano_respuesta,max_tokens=150,temperature=temperature)
+    messages=messages,n=tamano_respuesta,max_tokens=200,temperature=temperature)
        
     return completion.choices
 
@@ -207,7 +209,14 @@ def mensaje_sistema_ingles_espanol(detalles_post):
             f"Asegúrate de que todas los anuncios generados estén profundamente relacionadas con el negocio {detalles_post[0]['name']} y se ajusten a sus características únicas. Siempre incluye detalles del negocio y adapta tus respuestas a las solicitudes específicas de los usuarios. Si te hacen preguntas que no están relacionadas con la mejora o creación de contenido para redes sociales enfocados en {detalles_post[0]['name']}, indícales amablemente que la pregunta no es válida y anímales a formularla de nuevo centrados en el contenido de las redes sociales del negocio.\n\n"
 
             f"Ten en cuenta que el idioma principal para las publicaciones es {detalles_post[0]['post_language']}, y la longitud óptima para las copias es de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Siempre esfuérzate por mantener la creatividad y relevancia en tus respuestas, y busca destacar los puntos fuertes y atractivos de {detalles_post[0]['name']} en cada publicación. ¡Buena suerte!. Cada anuncio debe ser único y no debe repetirse. El copy siempre debe centrarse en las caracteristicas del negocio "
+            
         }
+
+        if detalles_post[0]['post_use_emojis'] == 'yes':
+               # Deja que la IA decida qué emojis incluir
+            system_message["content"] += "\nPor favor, incluye emojis en el contenido."
+        elif detalles_post[0]['post_use_emojis'] == 'no':
+            system_message["content"] += "\nPor favor, NO incluyas emojis en el contenido generado. NO NO NO NO"
 
 
     else:
@@ -241,13 +250,14 @@ def mensaje_usuario_personalizado(detalles_post):
     if detalles_post[0]['post_language'] == 'Spanish':
            user_message = {
                "role": "user",
-               "content": f"Genera una publicación para un anuncio en Facebook. Asegúrate de que sea atractiva y utiliza las características de anuncios anteriores del mismo negocio como referencia, sin embargo cada anuncio debe ser unico y diferente entre el resto para que llame la atencion de la audiencia. Usa tu creatividad para que se destaque. Además, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Cada anuncio debe ser único y no debe repetirse. El anuncio siempre debe centrarse en las caracteristicas del negocio {detalles_post[0]['name']}. Cada debe ser unico y original siempre"
+               "content": f"Genera una publicación para un anuncio en Facebook. Asegúrate de que sea atractiva y utiliza las características de anuncios anteriores del mismo negocio como referencia considera solo el texto, sin embargo cada anuncio debe ser unico y diferente entre el resto para que llame la atencion de la audiencia. Usa tu creatividad para que se destaque. Además, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Cada anuncio debe ser único y no debe repetirse. El anuncio siempre debe centrarse en las caracteristicas del negocio {detalles_post[0]['name']}. Cada debe ser unico y original siempre"
            }
            if detalles_post[0]['post_use_emojis'] == 'yes':
                # Deja que la IA decida qué emojis incluir
-               user_message["content"] += "\nPor favor, incluye emojis en el contenido."
+               user_message["content"] += "\nPor favor, incluye emojis en el contenido.No incluyas la pagina web, el telefono o direccion"
+                
            elif detalles_post[0]['post_use_emojis'] == 'no':
-                user_message["content"] += "\nPor favor, NO incluyas emojis en el contenido generado. NO NO NO NO"
+                user_message["content"] += "\nPor favor, NO incluyas emojis en el contenido generado. Debe ser solo texto, No incluyas la pagina web, el telefono o direccion"
                 
         # Tambien, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras."
            

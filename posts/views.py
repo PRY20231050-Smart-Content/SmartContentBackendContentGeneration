@@ -96,7 +96,7 @@ class PostsView(APIView):
                     'status': row[5],
                     'business_name': row[6],
                     'cc': row[7],
-                    'business_image': row[8],
+                    'business_image': get_file_url(row[8]),
                     'last_survey_id': row[9],
                  } for row in data_page
                 ]
