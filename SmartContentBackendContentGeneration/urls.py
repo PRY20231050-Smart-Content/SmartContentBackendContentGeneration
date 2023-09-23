@@ -14,10 +14,11 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path,include
 from posts import views
 
 urlpatterns = [
+    path('generation/', include([
     path('admin/', admin.site.urls),
     path('posts/', views.PostsView.as_view(), name='posts_get'),
     path('save-post/', views.SavePostView.as_view(), name='save_post'),
@@ -32,5 +33,5 @@ urlpatterns = [
     path('get-survey-answers/<int:post_survey_id>/', views.SurveyAnswersTemplateView.as_view(), name='get'),
     path('upload-file/', views.FileUploadView.as_view(), name='post'),
     path('upload-file-thunder/', views.FileUploadThunder.as_view(), name='post'),
-
+    ])),
 ]
