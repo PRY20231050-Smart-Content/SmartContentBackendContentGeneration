@@ -3,3 +3,4 @@ django-storages
 nltk
 pandas
 openai
+rest_framework
