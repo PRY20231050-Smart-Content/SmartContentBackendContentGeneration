@@ -89,7 +89,7 @@ DATABASES = {
         'OPTIONS': {
             'charset': 'utf8mb4',
             'ssl': {
-                'ca': '/DigiCertGlobalRootCA.crt.pem', # Ruta al archivo SSL
+                'ca': 'DigiCertGlobalRootCA.crt.pem', # Ruta al archivo SSL
             },
         },
     }
