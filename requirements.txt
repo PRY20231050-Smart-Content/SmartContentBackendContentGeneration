@@ -3,4 +3,8 @@ django-storages
 nltk
 pandas
 openai
-rest_framework
+django==4.1.7
+djangorestframework
+requests
+django-cors-headers
+mysqlclient
