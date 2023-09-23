@@ -81,16 +81,18 @@ WSGI_APPLICATION = 'SmartContentBackendContentGeneration.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tesis',
-        'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': 'localhost',
-        'PORT': '3306',
-         'OPTIONS': {
+        'NAME': 'tesis',  # Your database name
+        'USER': 'smartcontentmachine',  # Your Azure username
+        'PASSWORD': 'cielo2870#',  # Your Azure password
+        'HOST': 'smartcontentmachine.mysql.database.azure.com',  # Azure hostname
+        'PORT': '3306',  # MySQL default port
+        'OPTIONS': {
             'charset': 'utf8mb4',
+            'ssl': {
+                'ca': '/DigiCertGlobalRootCA.crt.pem', # Ruta al archivo SSL
+            },
         },
-    },
- 
+    }
 }
 
 
