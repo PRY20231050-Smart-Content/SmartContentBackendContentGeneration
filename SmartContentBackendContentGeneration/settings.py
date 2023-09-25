@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-v=4zhl-#&e=@0$f+o!w&8w12+!_$cd78f=90hi&wlb=*@(e$^r
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['20.106.131.22']
+ALLOWED_HOSTS = ['20.106.131.22', 'localhost']
 
 
 # Application definition
@@ -78,22 +78,38 @@ WSGI_APPLICATION = 'SmartContentBackendContentGeneration.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'tesis',  # Your database name
+#         'USER': 'smartcontentmachine',  # Your Azure username
+#         'PASSWORD': 'cielo2870#',  # Your Azure password
+#         'HOST': 'smartcontentmachine.mysql.database.azure.com',  # Azure hostname
+#         'PORT': '3306',  # MySQL default port
+#         'OPTIONS': {
+#             'charset': 'utf8mb4',
+#             'ssl': {
+#                 'ca': 'DigiCertGlobalRootCA.crt.pem', # Ruta al archivo SSL
+#             },
+#         },
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'tesis',  # Your database name
-        'USER': 'smartcontentmachine',  # Your Azure username
-        'PASSWORD': 'cielo2870#',  # Your Azure password
-        'HOST': 'smartcontentmachine.mysql.database.azure.com',  # Azure hostname
-        'PORT': '3306',  # MySQL default port
-        'OPTIONS': {
+        'NAME': 'tesis',
+        'USER': 'root', 
+        'PASSWORD': 'root',
+        'HOST': 'localhost',
+        'PORT': '3306',
+      'OPTIONS': {
             'charset': 'utf8mb4',
-            'ssl': {
-                'ca': 'DigiCertGlobalRootCA.crt.pem', # Ruta al archivo SSL
-            },
         },
+        
     }
 }
+
 
 
 # Password validation

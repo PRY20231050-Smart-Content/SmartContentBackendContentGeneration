@@ -208,7 +208,7 @@ def mensaje_sistema_ingles_espanol(detalles_post):
 
             f"Asegúrate de que todas los anuncios generados estén profundamente relacionadas con el negocio {detalles_post[0]['name']} y se ajusten a sus características únicas. Siempre incluye detalles del negocio y adapta tus respuestas a las solicitudes específicas de los usuarios. Si te hacen preguntas que no están relacionadas con la mejora o creación de contenido para redes sociales enfocados en {detalles_post[0]['name']}, indícales amablemente que la pregunta no es válida y anímales a formularla de nuevo centrados en el contenido de las redes sociales del negocio.\n\n"
 
-            f"Ten en cuenta que el idioma principal para las publicaciones es {detalles_post[0]['post_language']}, y la longitud óptima para las copias es de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Siempre esfuérzate por mantener la creatividad y relevancia en tus respuestas, y busca destacar los puntos fuertes y atractivos de {detalles_post[0]['name']} en cada publicación. ¡Buena suerte!. Cada anuncio debe ser único y no debe repetirse. El copy siempre debe centrarse en las caracteristicas del negocio "
+            f"Ten en cuenta que el idioma principal para las publicaciones es {detalles_post[0]['post_language']}, y la longitud óptima para las copias que escribiras es de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras. Siempre esfuérzate por mantener la creatividad y relevancia en tus respuestas, y busca destacar los puntos fuertes y atractivos de {detalles_post[0]['name']} en cada publicación. ¡Buena suerte!. Cada anuncio debe ser único y no debe repetirse. El copy siempre debe centrarse en las caracteristicas del negocio "
             
         }
 
@@ -236,7 +236,7 @@ def mensaje_sistema_ingles_espanol(detalles_post):
 
             f"Ensure that all generated copies are deeply related to the business {detalles_post[0]['name']} and tailored to its unique characteristics. Always include business details and adapt your responses to specific user requests. If you receive questions unrelated to improving or creating content for {detalles_post[0]['name']}'s social media, kindly inform them that the question is not valid and encourage them to rephrase it with a focus on the content of the business's social media.\n\n"
 
-            f"Keep in mind that the primary language for posts is {detalles_post[0]['post_language']}, and the optimal copy length is {cantidad_palabras(detalles_post[0]['post_copy_size'])} words. Always strive to maintain creativity and relevance in your responses, and aim to highlight the strengths and attractions of {detalles_post[0]['name']} in each post. Good luck!"
+            f"Keep in mind that the primary language for copies you will write is {detalles_post[0]['post_language']}, and the optimal copy length is {cantidad_palabras(detalles_post[0]['post_copy_size'])} words. Always strive to maintain creativity and relevance in your responses, and aim to highlight the strengths and attractions of {detalles_post[0]['name']} in each post. Good luck!"
         }
   
         
@@ -257,7 +257,7 @@ def mensaje_usuario_personalizado(detalles_post):
                user_message["content"] += "\nPor favor, incluye emojis en el contenido.No incluyas la pagina web, el telefono o direccion"
                 
            elif detalles_post[0]['post_use_emojis'] == 'no':
-                user_message["content"] += "\nPor favor, NO incluyas emojis en el contenido generado. Debe ser solo texto, No incluyas la pagina web, el telefono o direccion"
+                user_message["content"] += "\nPor favor, NO incluyas emojis en el contenido generado a pesar de que los ejemplos anteriores con los que cuentas tengan emojis. Debe ser solo texto, No incluyas la pagina web, el telefono o direccion"
                 
         # Tambien, ten en cuenta que el texto generado debe estar en el idioma {detalles_post[0]['post_language']} y constar de {cantidad_palabras(detalles_post[0]['post_copy_size'])} palabras."
            
