@@ -23,6 +23,7 @@ from django.core.files.base import ContentFile
 class PostsView(APIView):
 
      def post(self, request):
+         #prueba
         page = request.data.get('npage', 1)
         perpage = request.data.get('perPage', 10)
         sortby = request.data.get('sortBy', 'created_at')
